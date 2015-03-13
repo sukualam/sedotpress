@@ -168,7 +168,7 @@ function index_page($post_array){
 			<div class=\"row\">
 			{$konten}
 			<span>
-			<a class=\"btn btn-xs btn-success\" title=\"Read article {$meta_title}\" href=\"".SITE_URL."{$meta_url}\">Readmore</a>
+			<a class=\"btn btn-xs btn-success\" title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a>
 			</span>
 			</div>
 		  </div>
