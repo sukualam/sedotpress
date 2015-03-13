@@ -11,7 +11,7 @@ The current version is provide basic blogging features:
 * Blog pagination
 
 Installing:
-* Put the index.php in your server
+* Put the index.php and .htaccess in your server
 * Edit the config parameter in index.php, save
 * Create a directory called "data/" (no quote) that located same index.php
 * Fine :)
