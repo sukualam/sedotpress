@@ -12,10 +12,9 @@ The current version is provide basic blogging features:
 
 Installing:
 * Put the index.php in your server
-* Edit the config parameter in index.php
-* Make directory "data/" (no quote) where the index.php is located. (must same)
+* Edit the config parameter in index.php, save
+* Create a directory called "data/" (no quote) that located same index.php
 * Fine :)
-* 
 
 ##Managing and Other:
 
@@ -26,7 +25,8 @@ Installing:
 * Fine :)
 
 ### To force rebuild index
-* after a new post is created, it generating a new index, called "index.json" that located same in index.php
+* after a new post is created, it automatically generating a new index file, called "index.json" that located same in index.php
+* you dont need to rebuild manually, but if you want to do some experiment, you can force rebuild it
 * to force rebuild, open (your_blog_url)/build
 * open your blog again
 * Fine :)
