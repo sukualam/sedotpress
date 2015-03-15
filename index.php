@@ -167,6 +167,8 @@ function index_page($post_array){
 		#$konten = fread($u,filesize("data/".$key)-128);
 		$konten = fread($u,160);
 		$konten = self::strip_html_tags($konten);
+		$cutlastword = strrpos($konten, ' ');
+		$konten = substr($konten, 0, $cutlastword);
 		$group[] = "
 		  <div class=\"col-xs-12 col-md-12\">
 			<div class=\"row\">
@@ -175,10 +177,7 @@ function index_page($post_array){
 			<span>{$tag}</span>
 			</div>
 			<div class=\"row\">
-			<p class=\"lead\">{$konten}</p>
-			<span>
-			<a class=\"label label-success\" title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a>
-			</span>
+			<p class=\"lead\">{$konten} <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span></p>
 			</div>
 		  </div>
 		  ";
