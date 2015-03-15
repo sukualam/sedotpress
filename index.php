@@ -1,29 +1,23 @@
 <?php
 /*
-The MIT License (MIT)
-
-Copyright (c) [2015] [Sukualam]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
  */
 
-## VERSION: 0.1 beta
+
 /* ------------------------*/
 /* EDIT THIS CONFIGURATION */
 /* ------------------------*/
@@ -164,6 +158,7 @@ function index_page($post_array){
 		fseek($u,128);
 		#$konten = fread($u,filesize("data/".$key)-128);
 		$konten = fread($u,160);
+		$konten = self::strip_html_tags($konten);
 		$group[] = "
 		  <div class=\"col-xs-12 col-md-12\">
 			<div class=\"row\">
@@ -172,9 +167,9 @@ function index_page($post_array){
 			<span>{$tag}</span>
 			</div>
 			<div class=\"row\">
-			{$konten}
+			<p class=\"lead\">{$konten}</p>
 			<span>
-			<a class=\"btn btn-xs btn-success\" title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a>
+			<a class=\"label label-success\" title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a>
 			</span>
 			</div>
 		  </div>
@@ -268,7 +263,8 @@ function format_post($filename){
 	$split_meta = explode("|",$read_meta);
 	$meta_tags = explode(",",$split_meta[3]);
 	foreach($meta_tags as $val){
-	$tag .= "<span><a class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a></span> ";
+	$tag .= "<a title=\"post tagged in {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>
+	";
 	}
 	fseek($handle,128);
 	$konten = fread($handle,filesize("data/".$filename) - 128);
@@ -289,8 +285,8 @@ function _header($a,$b,$c,$d){
     <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <meta name=\"generator\" content=\"FlatSingleBlog\">
-    <title>{$a}</title>
-
+	{$b}
+	<title>{$a}</title>
     <!-- Bootstrap -->
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
 
@@ -300,12 +296,10 @@ function _header($a,$b,$c,$d){
       <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
       <script src=\"https://oss.maxcdn.com/respond/1.4.2/respond.min.js\"></script>
     <![endif]-->
+	{$c}
   </head>
   <body>
-  {$b}
-  <div class=\"container\">";
-  echo $c;
-  echo $d;
+  <div class=\"container\">{$d}";
 }
 function _body($a,$b,$c,$d){
 	echo $a;
@@ -323,6 +317,40 @@ function _foot($a,$b,$c,$d){
   </body>
 </html>";
 }
+function strip_html_tags($text){
+	// Copyright (c) 2008, David R. Nadeau, NadeauSoftware.com.
+	// All rights reserved.
+	$text = preg_replace(
+		array(
+			// Remove invisible content
+			'@<head[^>]*?>.*?</head>@siu',
+			'@<style[^>]*?>.*?</style>@siu',
+			'@<script[^>]*?.*?</script>@siu',
+			'@<object[^>]*?.*?</object>@siu',
+			'@<embed[^>]*?.*?</embed>@siu',
+			'@<applet[^>]*?.*?</applet>@siu',
+			'@<noframes[^>]*?.*?</noframes>@siu',
+			'@<noscript[^>]*?.*?</noscript>@siu',
+			'@<noembed[^>]*?.*?</noembed>@siu',
+			// Add line breaks before & after blocks
+			'@<((br)|(hr))@iu',
+			'@</?((address)|(blockquote)|(center)|(del))@iu',
+			'@</?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))@iu',
+			'@</?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))@iu',
+			'@</?((table)|(th)|(td)|(caption))@iu',
+			'@</?((form)|(button)|(fieldset)|(legend)|(input))@iu',
+			'@</?((label)|(select)|(optgroup)|(option)|(textarea))@iu',
+			'@</?((frameset)|(frame)|(iframe))@iu',
+		),
+		array(
+			' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+			"\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0",
+			"\n\$0", "\n\$0",
+		),
+		$text);
+	// Remove all remaining tags and comments and return.
+	return strip_tags($text);
+}
 } // endclass
 
 
@@ -332,10 +360,16 @@ function _foot($a,$b,$c,$d){
  */
 
 $get_request = explode("/",$_SERVER["REQUEST_URI"]);
-$search_form = "<h3>Search</h3><form action=\"".SITE_URL."/search/\" method=\"post\">
-<input type=\"text\" name=\"q\">
-<input type=\"submit\">
+$search_form = "<h3>Search</h3>
+<form action=\"".SITE_URL."/search/\" method=\"post\">
+<div class=\"input-group\">
+      <input type=\"text\" name=\"q\" class=\"form-control\" placeholder=\"Search for...\">
+      <span class=\"input-group-btn\">
+        <button class=\"btn btn-default\" type=\"submit\">Go!</button>
+      </span>
+    </div><!-- /input-group -->
 </form>";
+
 
 array_shift($get_request);
 
@@ -595,27 +629,32 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
 			$copyright .= "</p>";
 			// custom template
+			$meta_desc = "<meta name=\"description\" content=\"".$post->strip_html_tags(substr($post->post->content,0,150))."\">";
 			$body_contain = "
 			<div class=\"site-title\">
 			<h1><a href=\"".SITE_URL."\">".SITE_TITLE."</a></h1>
 			</div>
-			<div class=\"header\">
-			<h2>{$post->post->title}</h2>
-			<time class=\"badge\" datetime=\"".date('d-m-Y', strtotime($post->post->datetime))."\">{$post->post->datetime}</time>
-			{$post->post->tag}
-			</div>
+
 			<div class=\"row\">
-				<div class=\"col-md-9\">
+				<div class=\"col-md-7\">
+				<h2 title=\"{$post->post->title}\">{$post->post->title}</h2>
+				<time title=\"{$post->post->datetime}\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($post->post->datetime))."\">{$post->post->datetime}</time>
+				<span>{$post->post->tag}
+				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"permalink for {$post->post->title}\">permalink</a>
+				</span>
 				{$post->post->content}
 				</div>
-				<div class=\"col-md-3\">
-				
-				</div>
+			<div class=\"col-md-2\">
+			{$search_form}
+			</div>
+			<div class=\"col-md-3\">
+			{$post->arsip()}
+			</div>
 			</div>"
 			;
 			// render
-			$render_head = $post->_header($post->post->title . " - ".SITE_TITLE);
-			$render_body = $post->_body($body_contain,$search_form);
+			$render_head = $post->_header($post->post->title . " - ".SITE_TITLE,$meta_desc);
+			$render_body = $post->_body($body_contain);
 			$render_foot = $post->_foot($copyright);
 		}
 	}else{
@@ -631,14 +670,9 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		<div class=\"site-title\">
 		<h1>".SITE_TITLE."</h1>
 		</div>
-		<div class=\"header\">
-		<h2>{$post->post->title}</h2>
-		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
-			<div class=\"row-fluid\">
 			{$post->index_page($pointer)}
-			</div>
 			</div>
 			<div class=\"col-md-2\">
 			{$search_form}
@@ -681,8 +715,11 @@ elseif(count($get_request >= 2)){
 		<h2>Halaman {$pagenum}</h2>
 		</div>
 		<div class=\"row\">
-			<div class=\"col-md-9\">
+			<div class=\"col-md-7\">
 			{$post->index_page($pointer)}
+			</div>
+			<div class=\"col-md-2\">
+			{$search_form}
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
@@ -695,7 +732,7 @@ elseif(count($get_request >= 2)){
 		$copyright .= "</p>";
 		// $render
 		$render_head = $post->_header(SITE_TITLE." - Page {$pagenum}");
-		$render_body = $post->_body($body_contain,$search_form);
+		$render_body = $post->_body($body_contain);
 		$render_foot = $post->_foot($copyright,$post->page_navi(count($index),$pagenum));
 	}
 	elseif($get_request[0] == "search" || $get_request[0] == "tag" || $get_request[0] == "timeline"){
@@ -837,9 +874,7 @@ elseif(count($get_request >= 2)){
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
-			<div class=\"row-fluid\">
 			{$output}
-			</div>
 			</div>
 			<div class=\"col-md-2\">
 			{$search_form}
