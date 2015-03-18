@@ -632,7 +632,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			unset($index);
 			$print = $post->format_post($file_pointer);
 			// widgets, yeah
-			$copyright = "<p>Powered by FlatSingleBlog. Generated in: ";
+			$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
 			$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
 			$copyright .= "</p>";
 			// custom template
@@ -649,7 +649,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				<span>{$post->post->tag}
 				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"permalink for {$post->post->title}\">permalink</a>
 				</span>
-				{$post->post->content}
+				<article>{$post->post->content}</article>
 				</div>
 			<div class=\"col-md-2\">
 			{$search_form}
@@ -696,7 +696,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		</div>
 		</div>";
 		// widgets, yeah
-		$copyright = "<p>Powered by FlatSingleBlog. Generated in: ";
+		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
 		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
 		$copyright .= "</p>";
 		// $render
@@ -734,7 +734,7 @@ elseif(count($get_request >= 2)){
 		</div>"
 		;
 		// widgets, yeah
-		$copyright = "<p>Powered by FlatSingleBlog. Generated in: ";
+		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
 		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
 		$copyright .= "</p>";
 		// $render
@@ -892,7 +892,7 @@ elseif(count($get_request >= 2)){
 		</div>"
 		;
 		// widgets, yeah
-		$copyright = "<p>Powered by FlatSingleBlog. Generated in: ";
+		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
 		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
 		$copyright .= "</p>";
 		$render_head = $post->_header($c_title . " (Page {$page}) - ".SITE_TITLE);
