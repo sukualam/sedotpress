@@ -170,7 +170,7 @@ function index_page($post_array){
 		$cutlastword = strrpos($konten, ' ');
 		$konten = substr($konten, 0, $cutlastword);
 		$group[] = "
-		  <div class=\"col-xs-12 col-md-12\">
+		  <div class=\"col-md-12\">
 			<div class=\"row\">
 			<h2><a title=\"{$meta_title}\" rel=\"bookmark\" href=\"".SITE_URL."/{$meta_url}\">{$meta_title}</a></h2>
 			<time title=\"date posted\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($meta_date))."\">{$meta_date}</time>
