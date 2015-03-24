@@ -438,7 +438,7 @@ function strip_html_tags($text){
 
  
 // widgets, yeah
-$copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
+$copyright = "&copy; 2015 ".SITE_TITLE."| Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
 
 
 $get_request = explode("/",$_SERVER["REQUEST_URI"]);
