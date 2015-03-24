@@ -31,6 +31,11 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 * Enter the admin username & password
 * Fine :)
 
+### Theme & Modification
+* You can directly edit the source code, since this is just single file,
+* you advised to hacking this..
+
+
 ### EXPERT GUIDE: To force rebuild index
 * after a new post is created, it automatically generating a new index file, called "index.json" that located same in index.php
 * you dont need to rebuild manually, but if you want to do some experiment, you can force rebuild it
