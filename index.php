@@ -36,8 +36,8 @@ define("ADMIN_NICKNM","admin");
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
 // your rocks blog title
-define("SITE_TITLE","FlatSingleBlog");
-// url
+define("SITE_TITLE","Sedotpress Bro!");
+// url (without / at end)
 define("SITE_URL","http://localhost");
 // comment to debugging
 error_reporting(0);
@@ -80,10 +80,24 @@ function create_index(){
 		foreach($chunk[$i] as $key => $val){
 			$expl = explode("|",$val);
 			$date = $expl[0];
+			$tagpl[] = explode(",",$expl[3]);
 			$datx = explode(" ",$date);
 			$hier[$datx[2]][$datx[1]][$datx[0]] .= $key.",";
 		}
 	}
+	foreach($tagpl as $val){
+		foreach($val as $vall){
+			$tags[] = $vall;
+		}
+	}
+	$counttag = array_count_values($tags);
+	if(file_exists("tags.json")){
+		unlink("tags.json");
+	}
+	$tag_index = fopen("tags.json","a+");
+	$tag_encode_json = json_encode($counttag);
+	$tgwrite = fwrite($tag_index,$tag_encode_json);
+	fclose($tag_index);
 	if(file_exists("archive.json")){
 		unlink("archive.json");
 	}
@@ -100,11 +114,51 @@ function create_index(){
 	fwrite($save,$json);
 	fclose($save);
 }
-
+function comment_index($post){
+	$dir = "comment/{$post}/";
+	$scandir = array_diff(scandir($dir), array('..','.','index.json'));
+	natsort($scandir); # life saver
+	$reversed = array_reverse($scandir);
+	foreach($reversed as $filename){
+		$handle = fopen($dir.$filename,"r");
+		$read = fread($handle,30);
+		$container[$filename] = trim($read,"%");
+		fclose($handle);
+	}
+	$json = json_encode($container);
+	if(file_exists("comment/{$post}/index.json")){
+		unlink("comment/{$post}/index.json");
+	}
+	$json_filename = "comment/{$post}/index.json";
+	$save = fopen($json_filename,"a+");
+	fwrite($save,$json);
+	fclose($save);
+}
+function create_comment($post){
+	$dir = "comment/{$post}";
+	if(! is_dir($dir)){
+		if(mkdir($dir)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	else{
+		return true;
+	}
+}
 // load index.json and transform it to associated array
 function load_index(){
 	$read = fopen("index.json","r");
 	$str = fread($read,filesize("index.json"));
+	fclose($read);
+	$x = json_decode($str,true);
+	return $x;
+}
+function load_comment($post){
+	$read = fopen("comment/{$post}/index.json","r");
+	$str = fread($read,filesize("comment/{$post}/index.json"));
 	fclose($read);
 	$x = json_decode($str,true);
 	return $x;
@@ -117,17 +171,35 @@ function load_archive(){
 	$x = json_decode($str,true);
 	return $x;
 }
+// load tags.json and transform it to associated array
+function load_tags(){
+	$read = fopen("tags.json","r");
+	$str = fread($read,filesize("tags.json"));
+	fclose($read);
+	$x = json_decode($str,true);
+	return $x;
+}
+function tag_cloud(){
+	$x = self::load_tags();
+	$lst .= "<h3>Tag Clouds</h3>";
+	$lst .= "<ul>";
+	foreach($x as $key => $val){
+		$lst .= "<li><a title=\"Tag {$key} has {$val} post\" href=\"".SITE_URL."/tag/{$key}\">{$key}</a>
+		<span title=\"post count\">({$val})</span>
+		</li>";
+	}
+	$lst .= "</ul>";
+	return $lst;
+}
+
 function arsip(){
 	$x = self::load_archive();
-
 	$lst .= "<h3>Blog Archive</h3>
 <ul>";
 	foreach($x as $year => $month){
 		$lst .= "
 		<li>
 		<a title=\"Post archives in {$year}\" href=\"".SITE_URL."/timeline/{$year}\">{$year}</a>
-		</li>
-		<li style=\"list-style-type:none\">
 			<ul>
 			";
 		foreach($month as $key => $post){
@@ -177,7 +249,9 @@ function index_page($post_array){
 			<span>{$tag}</span>
 			</div>
 			<div class=\"row\">
-			<p class=\"lead\">{$konten} <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span></p>
+			<p class=\"lead\">{$konten}
+			<span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
+			</p>
 			</div>
 		  </div>
 		  ";
@@ -286,27 +360,23 @@ function format_post($filename){
 function _header($a,$b,$c,$d){
 	echo "
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang=\"id\">
   <head>
     <meta charset=\"utf-8\">
     <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
-    <meta name=\"generator\" content=\"FlatSingleBlog\">
+    <meta name=\"generator\" content=\"sedotpress\">
 	{$b}
 	<title>{$a}</title>
-    <!-- Bootstrap -->
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
       <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
       <script src=\"https://oss.maxcdn.com/respond/1.4.2/respond.min.js\"></script>
     <![endif]-->
 	{$c}
   </head>
-  <body>
-  <div class=\"container\">{$d}";
+  <body style=\"background:#efefef\">
+  <div style=\"margin-top:35px;margin-bottom:35px;background:#fff;box-shadow:0px 3px 3px #aaa\" class=\"container\">{$d}";
 }
 function _body($a,$b,$c,$d){
 	echo $a;
@@ -315,11 +385,11 @@ function _body($a,$b,$c,$d){
 	echo $d;
 }
 function _foot($a,$b,$c,$d){
-	echo "<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	echo "
     <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js\"></script>
     <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>
     <div>{$b}</div>
-    <footer>{$a}</footer>
+    <footer style=\"padding:10px\" class=\"footer\">{$a}</footer>
    </div>
   </body>
 </html>";
@@ -366,6 +436,11 @@ function strip_html_tags($text){
  * It will render the page depending requested url
  */
 
+ 
+// widgets, yeah
+$copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
+
+
 $get_request = explode("/",$_SERVER["REQUEST_URI"]);
 $search_form = "<h3>Search</h3>
 <form action=\"".SITE_URL."/search/\" method=\"post\">
@@ -374,7 +449,7 @@ $search_form = "<h3>Search</h3>
       <span class=\"input-group-btn\">
         <button class=\"btn btn-default\" type=\"submit\">Go!</button>
       </span>
-    </div><!-- /input-group -->
+    </div>
 </form>";
 
 
@@ -484,7 +559,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				";
 				$render_head = $post->_header("Backstage");
 				$render_body = $post->_body($h);
-				$render_foot = $post->_foot("<p>Copyright 2015 FlatSingleBlog</p>");
+				$render_foot = $post->_foot($copyright);
 			}
 			elseif($request == "manage"){
 				$index = $post->load_index();
@@ -581,7 +656,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					$write = fwrite($handle,$data);
 					if($write != false){
 						$msg = "<div class=\"alert alert-success alert-dismissible\" role=\"alert\">";
-						$msg .= "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>";
+						$msg .= "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
+						$msg .= "<span aria-hidden=\"true\">&times;</span></button>";
 						$msg .= "Written {$filename} ".strlen($data)."bytes of file";
 						$msg .= "</div>";
 						fclose($handle);
@@ -623,18 +699,84 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			}
 		}
 		else{
+			
 			## -------------------
 			## THIS IS SINGLE POST
 			## -------------------
 			$post = new cgile_init;
 			$index = $post->load_index();
+			session_start();
+			if(isset($_SESSION["celeng"])){
+				$capcay_old = $_SESSION["celeng"];
+			}
+			$_SESSION["celeng"] = substr(crc32(md5(microtime(true))),1,7);
+			$capcay_new = $_SESSION["celeng"];
 			$file_pointer = $post->get_filename($index,$get_request[0]);
-			unset($index);
+			$is_comment = $post->create_comment($file_pointer);
+			$pointer_comment = $_POST["pointer"];
+			if(isset($_SESSION["LOGIN"])){
+				$nick = "<i>Admin</i>";
+				$comm_text = $post->strip_html_tags($_POST["comment"]);
+				
+			}
+			else{
+				$nick = $post->strip_html_tags($_POST["usernick"]);
+				$comm_text = $post->strip_html_tags($_POST["comment"]);
+			}
+			if(isset($pointer_comment) && $pointer_comment != ""){
+				if($nick !== "" && $comm_text !== ""){
+					if($_POST["capcay"] == $capcay_old || isset($_SESSION["LOGIN"])){
+						$date = date("d F Y");
+						$meta = array($date,$nick);
+						$meta = $post->fill_string(implode("|",$meta),30);
+						$data = $meta . $comm_text;
+						if($is_comment){
+							$index_com = $post->load_comment($file_pointer);
+							$latest = key($index_com);
+							$latest = ltrim($latest,"comm");
+							$latest += 1;
+							$filename = "comment/{$file_pointer}/comm{$latest}";
+							$wr_com = fopen($filename,"a+");
+							$wrcom = fwrite($wr_com,$data);
+							fclose($wr_com);
+							$post->comment_index($file_pointer);
+						}
+						$nocapcay = "<div class=\"alert alert-success alert-dismissible\" role=\"alert\">
+						<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">
+						<span aria-hidden=\"true\">&times;</span>
+						</button>Comment published !</div>";
+					}
+					else{
+						$nocapcay = "<div class=\"alert alert-danger alert-dismissible\" role=\"alert\">
+						<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">
+						<span aria-hidden=\"true\">&times;</span>
+						</button>Please enter the correct capcay !</div>";
+					}
+				}
+			}else{
+				$nocapcay = "";
+			}
+			//load comment
+			$index_comment = $post->load_comment($file_pointer);
+			foreach($index_comment as $key => $val){
+				$meta = explode("|",$val);
+				$read_com = fopen("comment/{$file_pointer}/{$key}","r");
+				fseek($read_com,30);
+				$read_i = fread($read_com,filesize("comment/{$file_pointer}/{$key}"));
+				fclose($read_com);
+				if(isset($_SESSION["LOGIN"])){
+					$delbut = "<a href=\"".SITE_URL."/{$get_request[0]}/?del={$key}\">(del)</a>";
+				}
+				else{
+					$delbut = "";
+				}
+				$comment_format .= "<div class=\"the_komeng\">
+				<h4>{$meta[1]} <small>{$meta[0]}</small> {$delbut}</h4>";
+				$comment_format .= "<p>{$read_i}</p>";
+				$comment_format .= "</div>
+				";
+			}
 			$print = $post->format_post($file_pointer);
-			// widgets, yeah
-			$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
-			$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
-			$copyright .= "</p>";
 			// custom template
 			$meta_desc = "<meta name=\"description\" content=\"".$post->strip_html_tags(substr($post->post->content,0,150))."\">";
 			$body_contain = "
@@ -644,18 +786,42 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 
 			<div class=\"row\">
 				<div class=\"col-md-7\">
+				{$nocapcay}
 				<h2 title=\"{$post->post->title}\">{$post->post->title}</h2>
 				<time title=\"{$post->post->datetime}\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($post->post->datetime))."\">{$post->post->datetime}</time>
 				<span>{$post->post->tag}
 				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"permalink for {$post->post->title}\">permalink</a>
-				</span>
-				<article>{$post->post->content}</article>
+				</span><br>
+				{$post->post->content}
+				<div class=\"row comment\">
+					<div class=\"col-md-12\">
+					<h3>Comments</h3>
+					
+					{$comment_format}
+					</div>
+					<div class=\"col-md-12\">
+						<h3>Write a comment</h3>
+							<form action=\"".SITE_URL."/{$get_request[0]}\" method=\"post\">
+								<div class=\"form-group\">
+								<label>Nickname</label>
+								<input class=\"form-control\" type=\"text\" name=\"usernick\">
+								<label>Write a comment</label>
+								<textarea style=\"width:100%\" class=\"form-control\" name=\"comment\"></textarea>
+								<label>Enter code: {$capcay_new}</label>
+								<input style=\"width:150px\" class=\"form-control\" type=\"text\" name=\"capcay\">
+								<input type=\"hidden\" name=\"pointer\" value=\"".md5($file_pointer)."\"/><br>
+								<input class=\"btn btn-sm btn-primary\" type=\"submit\">
+								</div>
+							</form>
+					</div>
+				</div>
 				</div>
 			<div class=\"col-md-2\">
 			{$search_form}
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
+			{$post->tag_cloud()}
 			</div>
 			</div>"
 			;
@@ -686,6 +852,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
+			{$post->tag_cloud()}
 			</div>
 		</div>"
 		;
@@ -695,10 +862,6 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		{$post->page_navi(count($index),$pagenum)}
 		</div>
 		</div>";
-		// widgets, yeah
-		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
-		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
-		$copyright .= "</p>";
 		// $render
 		$render_head = $post->_header(SITE_TITLE . " - Homepage");
 		$render_body = $post->_body($body1,$body2);
@@ -730,13 +893,10 @@ elseif(count($get_request >= 2)){
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
+			{$post->tag_cloud()}
 			</div>
 		</div>"
 		;
-		// widgets, yeah
-		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
-		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
-		$copyright .= "</p>";
 		// $render
 		$render_head = $post->_header(SITE_TITLE." - Page {$pagenum}");
 		$render_body = $post->_body($body_contain);
@@ -888,19 +1048,31 @@ elseif(count($get_request >= 2)){
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
+			{$post->tag_cloud()}
 			</div>
 		</div>"
 		;
-		// widgets, yeah
-		$copyright = "<p>Powered by <a href=\"https://github.com/sukualam/flatsingleblog\" target=\"_blank\" title=\"Single file blogging platform without database\">FlatSingleBlog</a>. Generated in: ";
-		$copyright .= "<i>".substr(microtime(true) - $waktu,0,5)."s</i>";
-		$copyright .= "</p>";
 		$render_head = $post->_header($c_title . " (Page {$page}) - ".SITE_TITLE);
 		$render_body = $post->_body($body1);
 		if($get_request[0] != "timeline"){
 			$render_foot = $post->_foot($copyright,$post->page_navi(count($chunk),$page,"/{$get_request[0]}/{$keyword}/"));
 		}else{
 			$render_foot = $post->_foot($copyright,$post->page_navi(count($chunk),$page,"/{$get_request[0]}/{$keyword}/?page="));
+		}
+	}
+	else{
+		session_start();
+		if(isset($_SESSION["LOGIN"])){
+			$post = new cgile_init;
+			$index = $post->load_index();
+			$file_pointer = $post->get_filename($index,$get_request[0]);
+			if(unlink("comment/{$file_pointer}/{$_GET["del"]}")){
+				$post->comment_index($file_pointer);
+				header("Location: ".SITE_URL."/{$get_request[0]}");
+			}
+		}
+		else{
+			header("Location: ".SITE_URL);
 		}
 	}
 }
