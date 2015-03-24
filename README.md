@@ -6,6 +6,7 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 ### v.0.1.1 beta
 * builtin comment system (beta)
 * minor style change
+
 ### v0.1.0 beta
 (The current version is provide basic blogging features):
 * Create/Edit a post
