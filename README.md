@@ -1,5 +1,14 @@
 # Sedotpress
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! demo ( http://sedot.space )
+
+## Installing:
+* Put the index.php and .htaccess in your server
+* create folder "comment" , make it writable
+* create folder "data" , make it writable
+* Edit the config parameter (user&password) in index.php, save
+* JOS :)
+
+
 ## Changelog
 
 ### v.0.1.1 beta
@@ -15,13 +24,6 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 * Tags
 * Clean URL (permalink) / Url Rewrite
 * Blog pagination
-
-## Installing:
-* Put the index.php and .htaccess in your server
-* create folder "comment" , make it writable
-* create folder "data" , make it writable
-* Edit the config parameter (user&password) in index.php, save
-* JOS :)
 
 ##Managing and Other:
 
