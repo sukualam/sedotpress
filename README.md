@@ -5,7 +5,7 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 * Put the index.php and .htaccess in your server
 * create folder "comment" , make it writable
 * create folder "data" , make it writable
-* Edit the config parameter (user&password) in index.php, save
+* change value of ADMIN_NICKNM, ADMIN_PASSWD, SITE_TITLE, SITE_URL in index.php
 * JOS :)
 
 
