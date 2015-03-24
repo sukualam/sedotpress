@@ -36,7 +36,7 @@ define("ADMIN_NICKNM","admin");
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
 // your rocks blog title
-define("SITE_TITLE","Sedotpress Bro!");
+define("SITE_TITLE","Sedot_Space");
 // url (without / at end)
 define("SITE_URL","http://localhost");
 // comment to debugging
@@ -57,7 +57,7 @@ $waktu = microtime(true);
 // and green :)
 // benchmarking 1000 posts just += 0.005s in my cheap machine
 // WTF :)
-class cgile_init{
+class sedot{
 // create file "index.json" & "archive.json"
 // that contain bunch of index 
 // posts filename & post datetime
@@ -461,7 +461,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -------------
 			## REBUILD INDEX
 			## -------------
-			$post = new cgile_init;
+			$post = new sedot;
 			$build = $post->create_index();
 		}
 		elseif($get_request[0] == "backstage"){
@@ -469,7 +469,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## THIS IS BACKSTAGE
 			## -----------------
 			session_start();
-			$post = new cgile_init;
+			$post = new sedot;
 			$auth = $_SESSION["AUTHENTIC"];
 			if($auth == "" || $_SESSION["TIMES"] == 5){
 				$_SESSION["AUTHENTIC"] = "nobody";
@@ -703,7 +703,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -------------------
 			## THIS IS SINGLE POST
 			## -------------------
-			$post = new cgile_init;
+			$post = new sedot;
 			$index = $post->load_index();
 			session_start();
 			if(isset($_SESSION["celeng"])){
@@ -834,7 +834,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		## ------------------
 		## THIS IS FRONT PAGE
 		## ------------------
-		$post = new cgile_init;
+		$post = new sedot;
 		$index = $post->load_index();
 		$pagenum = 1;
 		$pointer = $index[$pagenum - 1];
@@ -873,7 +873,7 @@ elseif(count($get_request >= 2)){
 		## ----------------------
 		## THIS IS FRONT PAGE > 1
 		## ----------------------
-		$post = new cgile_init;
+		$post = new sedot;
 		$index = $post->load_index();
 		$pagenum = $get_request[1];
 		$pointer = $index[$pagenum - 1];
@@ -973,7 +973,7 @@ elseif(count($get_request >= 2)){
 		}
 		#echo $query;
 		#var_dump($query);
-		$post = new cgile_init;
+		$post = new sedot;
 		$index = $post->load_index();
 		$count = count($index);
 		for($i = 0;$i <= $count;$i++){
@@ -1063,7 +1063,7 @@ elseif(count($get_request >= 2)){
 	else{
 		session_start();
 		if(isset($_SESSION["LOGIN"])){
-			$post = new cgile_init;
+			$post = new sedot;
 			$index = $post->load_index();
 			$file_pointer = $post->get_filename($index,$get_request[0]);
 			if(unlink("comment/{$file_pointer}/{$_GET["del"]}")){
