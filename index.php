@@ -35,7 +35,7 @@ SOFTWARE.
 define("ADMIN_NICKNM","admin");
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
-// your rocks blog title
+// your rocks blog title :)
 define("SITE_TITLE","Sedot_Space");
 // url (without / at end)
 define("SITE_URL","http://localhost");
