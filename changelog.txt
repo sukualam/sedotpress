@@ -1,0 +1,20 @@
+Full Changelog
+
+v.0.1.2 beta (25/3/2015)
+now support nested of directory, like this : (http://localhost/blog)
+minor backstage (admin area) fix
+now can delete post from backstage
+
+v.0.1.1 beta
+builtin comment system (beta)
+minor style change
+
+v0.1.0 beta
+(The current version is provide basic blogging features):
+Create/Edit a post
+Admin area (we call it backstage)
+Search a post
+Blog archives
+Tags
+Clean URL (permalink) / Url Rewrite
+Blog pagination
