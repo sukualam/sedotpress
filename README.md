@@ -10,6 +10,11 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 
 ## Changelog
 
+### v.0.1.2 beta
+* now support nested of directory, like this : (http://localhost/blog)
+* minor backstage (admin area) fix
+* now can delete post from backstage
+
 ### v.0.1.1 beta
 * builtin comment system (beta)
 * minor style change
