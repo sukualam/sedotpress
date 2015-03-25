@@ -31,16 +31,29 @@ SOFTWARE.
 /* ------------------------*/
 
 ### START CONFIG ###
+
 // admin username, default is "admin"
 define("ADMIN_NICKNM","admin");
+
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
-// your rocks blog title :)
+
+// your rocks blog title
 define("SITE_TITLE","Sedot_Space");
-// url (without / at end)
+
+// your blog url (without "/" at end)
+//--- for example:
+//--- http://example.com
+//--- http://example.com/blog
+//--- http://example.com/blog/subblog
+//--- INFO: maybe you need edit the .htaccess
+//--------- if you install this in non root "/" directory
+//--- etc ....
 define("SITE_URL","http://localhost");
+
 // comment to debugging
 error_reporting(0);
+
 ### END CONFIG ###
 
 
@@ -50,19 +63,25 @@ error_reporting(0);
 /* ------- feel some bugs? go hack this ------ */
 /* --------------- THANK YOU ------------------*/
 
-$waktu = microtime(true);
-// there is just one class here
-// i doubt the class concept, but
-// i notice that this script is much faster
-// and green :)
-// benchmarking 1000 posts just += 0.005s in my cheap machine
-// WTF :)
+$find_base = explode("/",rtrim(SITE_URL,"/"),4);
+if(! isset($find_base[3]) || $find_base[3] == ""){
+	$requested = $_SERVER["REQUEST_URI"];
+}
+else{
+	$requested = str_replace("/{$find_base[3]}","",$_SERVER["REQUEST_URI"]);
+}
+
+$get_request = explode("/",$requested);
+array_shift($get_request);
+
 class sedot{
-// create file "index.json" & "archive.json"
-// that contain bunch of index 
-// posts filename & post datetime
-// for better performance...
-// coz, it saved a "static formatted data array"
+/*
+create file "index.json" & "archive.json"
+that contain bunch of index 
+posts filename & post datetime
+for better performance...
+coz, it saved a "static formatted data array"
+*/
 function create_index(){
 	$dir = "data/";
 	$scandir = array_diff(scandir($dir), array('..', '.'));
@@ -436,12 +455,9 @@ function strip_html_tags($text){
  * It will render the page depending requested url
  */
 
- 
 // widgets, yeah
 $copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
 
-
-$get_request = explode("/",$_SERVER["REQUEST_URI"]);
 $search_form = "<h3>Search</h3>
 <form action=\"".SITE_URL."/search/\" method=\"post\">
 <div class=\"input-group\">
@@ -451,9 +467,6 @@ $search_form = "<h3>Search</h3>
       </span>
     </div>
 </form>";
-
-
-array_shift($get_request);
 
 if(count($get_request) == 1 || $get_request[0] == "backstage"){
 	if($get_request[0] != ""){
@@ -484,12 +497,15 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				<input type=\"text\" name=\"key\">
 				<input type=\"submit\">
 				</form>
+				Back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a><br><hr>
+				{$copyright}
 				";
 				if($_POST["key"] == $_SESSION["KEY"]){
 					$_SESSION["TIMES"] = 0;
 					$_SESSION["LOGIN"] = "almost";
-					$msg_1 = "Its correct!, you can continue...
-					<a href=\"".SITE_URL."/backstage\" class=\"btn btn-primary\">Continue</a>
+					$msg_1 = "Its correct!, you can continue...<br>
+					<a href=\"".SITE_URL."/backstage\" class=\"btn btn-primary\">Continue</a> or back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a><br><hr>
+					{$copyright}
 					";
 				}
 				echo $msg_1;
@@ -497,11 +513,14 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			}
 			if($_SESSION["LOGIN"] == "almost"){
 				$_SESSION["TIMES"]++;
-				$msg_2 = "
+				$msg_2 = "<h1>".SITE_TITLE." &middot; <small>Backstage Area</small></h1>";
+				$msg_3 = "
+				{$msg_2}
 				<div style=\"margin-top:20px\" class=\"row\">
 				<div class=\"col-md-4\">
 				</div>
 				<div class=\"col-md-4\">
+				
 				<form action=\"".SITE_URL."/backstage\" method=\"post\">
 				<div class=\"form-group\">
 				<label>Username</label>
@@ -515,6 +534,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				<input class=\"form-control btn btn-success\" type=\"submit\"/>
 				</div>
 				</form>
+				Back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a>
 				</div>
 				<div class=\"col-md-4\">
 				</div>
@@ -528,16 +548,16 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					header("Location: ".SITE_URL."/backstage");
 				}
 				$render_head = $post->_header("Login into backstage..");
-				$render_body = $post->_body($msg_2);
-				$render_foot = $post->_foot();
+				$render_body = $post->_body($msg_3);
+				$render_foot = $post->_foot($copyright);
 				break;
 			}
 			#echo "WELCOME! session_id: {$_SESSION["LOGIN"]}";
 			$request = $get_request[1];
 			$menu = "
-				[<a href=\"/backstage/\">Backstage</a>]
-				[<a href=\"/backstage/manage\">Manage</a>]
-				[<a href=\"/backstage/create\">Create</a>]";
+				[<a href=\"".SITE_URL."/backstage/\">Backstage</a>]
+				[<a href=\"".SITE_URL."/backstage/manage\">Manage</a>]
+				[<a href=\"".SITE_URL."/backstage/create\">Create</a>]";
 			if($request == ""){
 				$h = "
 				<div class=\"header\">
