@@ -438,7 +438,7 @@ function strip_html_tags($text){
 
  
 // widgets, yeah
-$copyright = "&copy; 2015 ".SITE_TITLE."| Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
+$copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
 
 
 $get_request = explode("/",$_SERVER["REQUEST_URI"]);
@@ -552,14 +552,19 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				<p>Create a new post, and auto rebuild index.</p>
 				</div>
 				<div class=\"col-md-4\">
-				<h2><a href=\"".SITE_URL."/backstage/backup\">Backup/Restore</a></h2>
-				<p>Easy backup / restore your posts.</p>
+				<h2><a href=\"".SITE_URL."/backstage/logout\">Logout</a></h2>
+				<p>Exit the administration session.</p>
 				</div>
 				</div>
 				";
 				$render_head = $post->_header("Backstage");
 				$render_body = $post->_body($h);
 				$render_foot = $post->_foot($copyright);
+			}
+			elseif($request == "logout"){
+				session_start();
+				session_destroy();
+				header("Location: ".SITE_URL);
 			}
 			elseif($request == "manage"){
 				$index = $post->load_index();
@@ -575,6 +580,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					<td>{$exp[1]}</td>
 					<td>{$exp[3]}</td>
 					<td><a href=\"".SITE_URL."/backstage/edit/?id={$key}\">EDIT</a></td>
+					<td><a href=\"".SITE_URL."/backstage/delete/?id={$key}\">DELETE</a></td>
 					</tr>";
 				}
 				$list .= "</table>";
@@ -586,7 +592,15 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				</div>";
 				$render_head = $post->_header("Manage post");
 				$render_body = $post->_body($lay_00,$lay_01,$menu);
-				$render_foot = $post->_foot(NULL,$post->page_navi(count($index),$x,"/backstage/manage/?hal="));
+				$render_foot = $post->_foot($copyright,$post->page_navi(count($index),$x,"/backstage/manage/?hal="));
+			}
+			elseif($request == "delete"){
+				if(isset($_GET["id"])){
+					if(unlink("data/{$_GET["id"]}")){
+						$post->create_index();
+						header("Location: ".SITE_URL."/backstage/manage");
+					}
+				}
 			}
 			elseif($request == "edit"){
 				if(isset($_GET["id"])){
@@ -643,6 +657,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					$konten = $_POST["konten"];
 					$meta = array($date,$title,$url,$tag);
 					if(in_array("",$meta)){
+						$_SESSION["msg"] = "All field must not empty";
 						header("Location: /backstage/create");
 						exit;
 					}
@@ -665,7 +680,14 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					}
 					
 				}
-				$layout = "<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
+				if(isset($_SESSION["msg"])){
+					$msg_err = $_SESSION["msg"];
+					unset($_SESSION["msg"]);
+				}
+				else{
+					$msg_err = "";
+				}
+				$layout = "{$msg_err}<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
 				<div class=\"form-group\">
 				<label>Entry</label>
 				<textarea class=\"form-control\" name=\"konten\"></textarea>
@@ -689,10 +711,6 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				$render_head = $post->_header("Create a Post");
 				$render_body = $post->_body($msg,$layout,$menu);
 				$render_foot = $post->_foot();
-			}
-			elseif($request == "logout"){
-				session_destroy();
-				header("Location: /backstage");
 			}
 			elseif($request == "backup"){
 				echo 1;
