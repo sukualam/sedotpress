@@ -8,6 +8,24 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 * create folder "data" , make it writable
 * JOS :)
 
+## Structure
+.
+├── .htaccess
+├── comment
+|   └── post1
+|		├── comm1
+|		├── comm2
+|		├── comm...
+|		└── index.json
+├── data
+|   ├── post1
+|   ├── post2
+|   ├── post3
+|   └── post...
+├── index.php
+├── index.json
+├── tags.json
+└── archive.json
 
 ## Changelog
 
