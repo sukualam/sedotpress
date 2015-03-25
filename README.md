@@ -8,7 +8,8 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 * create folder "data" , make it writable
 * JOS :)
 
-## Changelog
+## Recent Changelog
+### (for full changelog, read changelog.txt)
 
 ### v.0.1.2 beta
 * now support nested of directory, like this : (http://localhost/blog)
