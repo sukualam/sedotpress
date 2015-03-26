@@ -37,9 +37,10 @@ define("ADMIN_NICKNM","admin");
 
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
-
 // your rocks blog title
 define("SITE_TITLE","Sedot_Space");
+// your rocks blog description
+define("SITE_DESC","my sedotpress blog");
 
 // your blog url (without "/" at end)
 //--- for example:
@@ -76,11 +77,10 @@ array_shift($get_request);
 
 class sedot{
 /*
-create file "index.json" & "archive.json"
-that contain bunch of index 
-posts filename & post datetime
-for better performance...
-coz, it saved a "static formatted data array"
+function: create_index()
+description:
+it create static index cache in json (index.json, archive.json, tags.json)
+and create a sitemap
 */
 function create_index(){
 	$dir = "data/";
@@ -93,7 +93,63 @@ function create_index(){
 		$container[$filename] = trim($read,"%");
 		fclose($handle);
 	}
+	if(file_exists("sitemap.xml")){
+		unlink("sitemap.xml");
+	}
+	if(true){
+		$create_sitemap = fopen("sitemap.xml","a");
+		$xml_sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+		<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"> 
+		";
+		fwrite($create_sitemap,$xml_sitemap);
+		foreach($container as $postid => $metadata){
+			$meta_explode = explode("|",$metadata);
+			$write_node = "<url><loc>".SITE_URL."/{$meta_explode[2]}</loc></url>
+			";
+			fwrite($create_sitemap,$write_node);
+		}
+		$xml_sitemap = "</urlset>";
+		fwrite($create_sitemap,$xml_sitemap);
+		fclose($create_sitemap);
+	}
 	$chunk = array_chunk($container,5,TRUE);
+	if(file_exists("rss.xml")){
+		unlink("rss.xml");
+	}
+	if(true){
+		for($i = 0;$i<= 1;$i++){
+			foreach($chunk[$i] as $postid => $metadata){
+			$explode = explode("|",$metadata);
+			$title = $explode[1];
+			$url = SITE_URL."/{$explode[2]}";
+			$open_file = fopen("data/{$postid}","r");
+			fseek($open_file,128);
+			$read_file = fread($open_file,filesize("data/{$postid}"));
+			$read_file = htmlentities($read_file);
+			fclose($open_file);
+			$temp_data[] = "
+			<item>
+			<title>{$title}</title>
+			<link>{$url}</link>
+			<description>{$read_file}</description>
+			</item>";
+			}
+		}
+		$create_rss = fopen("rss.xml","a+");
+		$rss_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
+		<rss version=\"2.0\">
+		<channel>
+		<title>".SITE_TITLE."</title>
+		<link>".SITE_URL."</link>
+		<description>".SITE_DESC."</description>";
+		fwrite($create_rss,$rss_xml);
+		fwrite($create_rss,implode("\n",$temp_data));
+		$rss_xml = "
+		</channel>
+		</rss>";
+		fwrite($create_rss,$rss_xml);
+		fclose($create_rss);
+	}
 	$json = json_encode($chunk);
 	for($i=0;$i<=count($chunk);$i++){
 		foreach($chunk[$i] as $key => $val){
@@ -387,6 +443,7 @@ function _header($a,$b,$c,$d){
     <meta name=\"generator\" content=\"sedotpress\">
 	{$b}
 	<title>{$a}</title>
+	<link href=\"".SITE_URL."/rss\" rel=\"alternate\" type=\"application/rss+xml\"/>
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
     <!--[if lt IE 9]>
       <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
@@ -458,7 +515,8 @@ function strip_html_tags($text){
 // widgets, yeah
 $copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
 
-$search_form = "<h3>Search</h3>
+$search_form = "
+<h3>Search</h3>
 <form action=\"".SITE_URL."/search/\" method=\"post\">
 <div class=\"input-group\">
       <input type=\"text\" name=\"q\" class=\"form-control\" placeholder=\"Search for...\">
@@ -466,7 +524,12 @@ $search_form = "<h3>Search</h3>
         <button class=\"btn btn-default\" type=\"submit\">Go!</button>
       </span>
     </div>
-</form>";
+</form>
+<h3>Links</h3>
+<ul>
+<li><a title=\"".SITE_TITLE." RSS Feeds\" href=\"".SITE_URL."/rss\">RSS Feeds</a></li>
+</ul>
+";
 
 if(count($get_request) == 1 || $get_request[0] == "backstage"){
 	if($get_request[0] != ""){
@@ -476,6 +539,16 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -------------
 			$post = new sedot;
 			$build = $post->create_index();
+		}
+		elseif($get_request[0] == "rss"){
+			## -----------
+			## THIS IS RSS
+			## -----------
+			header("Content-Type: application/xml; charset=ISO-8859-1");
+			$open_rss = fopen("rss.xml","r");
+			$read_rss = fread($open_rss,filesize("rss.xml"));
+			fclose($open_rss);
+			echo $read_rss;
 		}
 		elseif($get_request[0] == "backstage"){
 			## -----------------
@@ -820,6 +893,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			$body_contain = "
 			<div class=\"site-title\">
 			<h1><a href=\"".SITE_URL."\">".SITE_TITLE."</a></h1>
+			<h2>".SITE_DESC."</h2>
 			</div>
 
 			<div class=\"row\">
@@ -880,6 +954,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		$body1 = "
 		<div class=\"site-title\">
 		<h1>".SITE_TITLE."</h1>
+		<h2>".SITE_DESC."</h2>
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
@@ -918,9 +993,10 @@ elseif(count($get_request >= 2)){
 		$body_contain = "
 		<div class=\"site-title\">
 		<h1><a href=\"".SITE_URL."\">".SITE_TITLE."</a></h1>
+		<h2>".SITE_DESC."</h2>
 		</div>
 		<div class=\"header\">
-		<h2>Halaman {$pagenum}</h2>
+		<h2><small>Page {$pagenum}</small></h2>
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
@@ -1073,9 +1149,10 @@ elseif(count($get_request >= 2)){
 		$body1 = "
 		<div class=\"site-title\">
 		<h1><a href=\"".SITE_URL."\">".SITE_TITLE."</a></h1>
+		<h2>".SITE_DESC."</h2>
 		</div>
 		<div class=\"header\">
-		<h2><i>{$c_title}</i></h2>
+		<h2><small>{$c_title}</small></h2>
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
