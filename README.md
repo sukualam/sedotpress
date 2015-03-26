@@ -11,24 +11,20 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 ## Recent Changelog
 ### (for full changelog, read changelog.txt)
 
-### v.0.1.2 beta
-* now support nested of directory, like this : (http://localhost/blog)
-* minor backstage (admin area) fix
-* now can delete post from backstage
-
-### v.0.1.1 beta
-* builtin comment system (beta)
-* minor style change
-
-### v0.1.0 beta
-(The current version is provide basic blogging features):
-* Create/Edit a post
+## Features
+* Fast & lightweight
+* Index caching
+* Create/edit/delete a post
+* Built-In Comment System
 * Admin area (we call it backstage)
 * Search a post
 * Blog archives
 * Tags
 * Clean URL (permalink) / Url Rewrite
-* Blog pagination
+* Page Navigation
+* RSS Feeds
+* Sitemap.xml generator
+* etc.. (in development..)
 
 ##Managing and Other:
 
