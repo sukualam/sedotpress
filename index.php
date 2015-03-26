@@ -38,7 +38,7 @@ define("ADMIN_NICKNM","admin");
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
 // your rocks blog title
-define("SITE_TITLE","Sedot_Space");
+define("SITE_TITLE","Sedotpress");
 // your rocks blog description
 define("SITE_DESC","my sedotpress blog");
 
@@ -544,7 +544,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -----------
 			## THIS IS RSS
 			## -----------
-			header("Content-Type: application/xml; charset=ISO-8859-1");
+			header("Content-Type: application/rss+xml; charset=ISO-8859-1");
 			$open_rss = fopen("rss.xml","r");
 			$read_rss = fread($open_rss,filesize("rss.xml"));
 			fclose($open_rss);
