@@ -77,13 +77,11 @@ array_shift($get_request);
 
 $extracss = "
 <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css\">
-<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/css/froala_editor.min.css\">
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/summernote/0.6.2/summernote.min.css\">
 ";
 $extrajs = "
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/froala_editor.min.js\"></script>
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/plugins/tables.min.js\"></script>
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/plugins/lists.min.js\"></script>
-<script>$(function(){\$('#konten').editable({inlineMode: false})});</script>";
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/summernote/0.6.2/summernote.min.js\"></script>
+<script>$(document).ready(function(){\$('#konten').summernote();});</script>";
 
 class sedot{
 /*
@@ -306,41 +304,63 @@ function arsip(){
 	$lst .= "</ul>";
 	return $lst;
 }
-function index_page($post_array){
-	foreach($post_array as $key => $c){
-		$u = fopen("data/".$key,"r");
-		$postmeta = fread($u,128);
-		$postmeta = rtrim($postmeta,"%");
+function index_page($post_array){		
+	foreach($post_array as $postid => $metadata){	
+		$postmeta = rtrim($metadata,"%");
 		$split_meta = explode("|",$postmeta);
 		$meta_date = $split_meta[0];
 		$meta_title = $split_meta[1];
 		$meta_url = $split_meta[2];
 		$meta_tags = explode(",",$split_meta[3]);
 		foreach($meta_tags as $val){
-			$tag .= "<a title=\"tagged as {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>
-			";
+		$tag .= "<a title=\"tagged as {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>
+		";
 		}
-		fseek($u,128);
-		#$konten = fread($u,filesize("data/".$key)-128);
-		$konten = fread($u,160);
-		$konten = self::strip_html_tags($konten);
+		$open_file = fopen("data/".$postid,"r");
+		fseek($open_file,128);
+		$read_file = fread($open_file,filesize("data/".$postid));
+		$pattern = '/src="([^"]*)"/';
+		preg_match($pattern, $read_file, $matches);
+		$src = $matches[1];
+		$konten = self::strip_html_tags($read_file);
+		$konten = substr($konten,0,270);
 		$cutlastword = strrpos($konten, ' ');
 		$konten = substr($konten, 0, $cutlastword);
+		if($src == ""){
+			$konten = substr($konten, 0, $cutlastword);
+			$konten = "<div class=\"row\">
+			   <p>{$konten}
+			  <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
+			  </p>
+			</div>
+			";
+		}
+		else{
+			$konten = substr($konten, 0, $cutlastword);
+			$konten = "<div class=\"row\">
+			  <div class=\"col-xs-6 col-md-3\">
+				<a href=\"#\" class=\"thumbnail\">
+				  <img title=\"{$meta_title}\" alt=\"{$meta_title}\" src=\"{$src}\"/>
+				</a>
+			  </div>
+			  <p>{$konten}
+			  <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
+			  </p>
+			</div>
+			";
+			
+		}
 		$group[] = "
 		  <div class=\"col-md-12\">
-			<div class=\"row\">
+			<div style=\"margin-bottom:25px\" class=\"row\">
 			<h2><a title=\"{$meta_title}\" rel=\"bookmark\" href=\"".SITE_URL."/{$meta_url}\">{$meta_title}</a></h2>
 			<time title=\"date posted\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($meta_date))."\">{$meta_date}</time>
 			<span>{$tag}</span>
 			</div>
-			<div class=\"row\">
-			<p class=\"lead\">{$konten}
-			<span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
-			</p>
-			</div>
+			{$konten}
 		  </div>
 		  ";
-		fclose($u);
+		fclose($open_file);
 		unset($tag);
 	}
 	return implode("",$group);
