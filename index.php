@@ -34,6 +34,7 @@ SOFTWARE.
 
 // admin username, default is "admin"
 define("ADMIN_NICKNM","admin");
+
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
 // your rocks blog title
@@ -463,7 +464,7 @@ function format_post($filename){
 	foreach($meta_tags as $val){
 	$tag .= "<a title=\"post tagged in {$val}\" ";
 	$tag .= "class=\"label label-primary\" ";
-	$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>";
+	$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
 	}
 	fseek($handle,128);
 	$konten = fread($handle,filesize("data/".$filename) - 128);
@@ -953,7 +954,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				<time title=\"{$post->post->datetime}\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($post->post->datetime))."\">{$post->post->datetime}</time>
 				<span>{$post->post->tag}
 				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"permalink for {$post->post->title}\">permalink</a>
-				</span><br>
+				</span><br><br>
 				{$post->post->content}
 				<div class=\"row comment\">
 					<div class=\"col-md-12\">
