@@ -5,15 +5,11 @@ The new lightweight and low-resources blogging platform written in PHP. It is si
 Latest releases: https://github.com/sukualam/sedotpress/releases
 
 ## Installing:
-Copy "index.php", "data", "comment" in root directory "/"
-
-Edit some configuration in index.php, save it
-
-chmod 777 /data & /comment
-
-JOS :)
-
-####Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess
+* Copy "index.php", "data", "comment" in root directory "/"
+* Edit some configuration in index.php, save it
+* Make sure folder "data" & "comment" writable (you can chmod it)
+* You ready to go
+* (Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess)
 
 
 ## Recent Changelog
