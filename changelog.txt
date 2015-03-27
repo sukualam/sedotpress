@@ -5,7 +5,7 @@ enabled RSS feeds
 enabled sitemap (auto generate)
 enabled post thumbnails
 added visual editor (WYSIWYG)
-enabled image upload base64
+enabled image upload (base64 encoded)
 minor style changes
 
 v.0.1.2 beta (25/3/2015)
