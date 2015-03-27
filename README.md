@@ -1,12 +1,20 @@
 # Sedotpress
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! demo ( http://sedot.space )
 
+## Downloads:
+Latest releases: https://github.com/sukualam/sedotpress/releases
+
 ## Installing:
-* Put the index.php and .htaccess in your server
-* Edit some configuration in index.php, save it
-* create folder "comment" , make it writable
-* create folder "data" , make it writable
-* JOS :)
+Copy "index.php", "data", "comment" in root directory "/"
+
+Edit some configuration in index.php, save it
+
+chmod 777 /data & /comment
+
+JOS :)
+
+####Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess
+
 
 ## Recent Changelog
 ### (for full changelog, read changelog.txt)
