@@ -75,6 +75,16 @@ else{
 $get_request = explode("/",$requested);
 array_shift($get_request);
 
+$extracss = "
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css\">
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/css/froala_editor.min.css\">
+";
+$extrajs = "
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/froala_editor.min.js\"></script>
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/plugins/tables.min.js\"></script>
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/froala-editor/1.2.6/js/plugins/lists.min.js\"></script>
+<script>$(function(){\$('#konten').editable({inlineMode: false})});</script>";
+
 class sedot{
 /*
 function: create_index()
@@ -445,6 +455,8 @@ function _header($a,$b,$c,$d){
 	<title>{$a}</title>
 	<link href=\"".SITE_URL."/rss\" rel=\"alternate\" type=\"application/rss+xml\"/>
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
+    
+	
     <!--[if lt IE 9]>
       <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
       <script src=\"https://oss.maxcdn.com/respond/1.4.2/respond.min.js\"></script>
@@ -464,6 +476,7 @@ function _foot($a,$b,$c,$d){
 	echo "
     <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js\"></script>
     <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>
+	{$c}
     <div>{$b}</div>
     <footer style=\"padding:10px\" class=\"footer\">{$a}</footer>
    </div>
@@ -704,11 +717,11 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					fseek($handle,128);
 					$read_konten = fread($handle,filesize("data/{$_GET['id']}") - 128);
 					fclose($handle);
-					$layout = "<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
+					$layout = "
+					<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
 					<div class=\"form-group\">
 					<label>Entry</label>
-					<textarea class=\"form-control\" name=\"konten\">{$read_konten}</textarea>
-					</div>
+					<textarea id=\"konten\" class=\"form-control\" name=\"konten\">{$read_konten}</textarea>
 					<div class=\"form-group\">
 					<label>Title</label>
 					<input value=\"{$get_meta[1]}\" class=\"form-control\" type=\"text\" name=\"title\">
@@ -723,12 +736,13 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					<input type=\"hidden\" name=\"_postname\" value=\"{$_GET['id']}\">
 					</div><div class=\"form-group\">
 					<input class=\"btn btn-success\" type=\"submit\">
-					</div></form>
+					</div></div></form>
 					";
 					// render
-					$render_head = $post->_header("Edit post");
+					
+					$render_head = $post->_header("Edit post",$extracss);
 					$render_body = $post->_body($msg,$layout,$menu);
-					$render_foot = $post->_foot();
+					$render_foot = $post->_foot($copyright,NULL,$extrajs);
 				}
 			}
 			elseif($request == "create"){
@@ -780,10 +794,11 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				else{
 					$msg_err = "";
 				}
-				$layout = "{$msg_err}<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
+				$layout = "{$msg_err}
+				<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
 				<div class=\"form-group\">
 				<label>Entry</label>
-				<textarea class=\"form-control\" name=\"konten\"></textarea>
+				<textarea id=\"konten\" class=\"form-control\" name=\"konten\"></textarea>
 				</div>
 				<div class=\"form-group\">
 				<label>Title</label>
@@ -801,9 +816,9 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				</div></form>
 				";
 				// render
-				$render_head = $post->_header("Create a Post");
+				$render_head = $post->_header("Create a Post",$extracss);
 				$render_body = $post->_body($msg,$layout,$menu);
-				$render_foot = $post->_foot();
+				$render_foot = $post->_foot($copyright,NULL,$extrajs);
 			}
 			elseif($request == "backup"){
 				echo 1;
