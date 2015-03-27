@@ -34,7 +34,6 @@ SOFTWARE.
 
 // admin username, default is "admin"
 define("ADMIN_NICKNM","admin");
-
 // admin password, default is "root"
 define("ADMIN_PASSWD","root");
 // your rocks blog title
@@ -64,6 +63,7 @@ error_reporting(0);
 /* ------- feel some bugs? go hack this ------ */
 /* --------------- THANK YOU ------------------*/
 
+## i call it url routing (maybe wrong :D), but it works.
 $find_base = explode("/",rtrim(SITE_URL,"/"),4);
 if(! isset($find_base[3]) || $find_base[3] == ""){
 	$requested = $_SERVER["REQUEST_URI"];
@@ -71,10 +71,9 @@ if(! isset($find_base[3]) || $find_base[3] == ""){
 else{
 	$requested = str_replace("/{$find_base[3]}","",$_SERVER["REQUEST_URI"]);
 }
-
 $get_request = explode("/",$requested);
 array_shift($get_request);
-
+# this is just for WYSIWYG editor (summernote)
 $extracss = "
 <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css\">
 <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/summernote/0.6.2/summernote.min.css\">
@@ -82,6 +81,7 @@ $extracss = "
 $extrajs = "
 <script src=\"https://cdnjs.cloudflare.com/ajax/libs/summernote/0.6.2/summernote.min.js\"></script>
 <script>$(document).ready(function(){\$('#konten').summernote();});</script>";
+
 
 class sedot{
 /*
@@ -267,9 +267,9 @@ function tag_cloud(){
 	$lst .= "<h3>Tag Clouds</h3>";
 	$lst .= "<ul>";
 	foreach($x as $key => $val){
-		$lst .= "<li><a title=\"Tag {$key} has {$val} post\" href=\"".SITE_URL."/tag/{$key}\">{$key}</a>
-		<span title=\"post count\">({$val})</span>
-		</li>";
+		$lst .= "<li><a title=\"Tag {$key} has {$val} post\" ";
+		$lst .= "href=\"".SITE_URL."/tag/{$key}\">{$key}</a> ";
+		$lst .= "<span title=\"post count\">({$val})</span></li>";
 	}
 	$lst .= "</ul>";
 	return $lst;
@@ -277,47 +277,52 @@ function tag_cloud(){
 
 function arsip(){
 	$x = self::load_archive();
-	$lst .= "<h3>Blog Archive</h3>
-<ul>";
+	$lst .= "<h3>Blog Archive</h3><ul>";
 	foreach($x as $year => $month){
-		$lst .= "
-		<li>
-		<a title=\"Post archives in {$year}\" href=\"".SITE_URL."/timeline/{$year}\">{$year}</a>
-			<ul>
-			";
+		$lst .= "<li><a title=\"Post archives in {$year}\" ";
+		$lst .= "href=\"".SITE_URL."/timeline/{$year}\">{$year}</a><ul>";
 		foreach($month as $key => $post){
 			foreach($post as $val){
 				$xxx = explode(",",rtrim($val,","));
 				$count += count($xxx);
 			}
-			$lst .= "<li>
-			<a title=\"Post archives in {$key} {$year}\" href=\"".SITE_URL."/timeline/{$year}/".strtolower($key)."\">{$key}</a>
-			<span>({$count})</span>
-			</li>
-			";
+			$lst .= "<li>";
+			$lst .= "<a title=\"Post archives in {$key} {$year}\" ";
+			$lst .= "href=\"".SITE_URL."/timeline/{$year}/";
+			$lst .= strtolower($key)."\">{$key}</a> ";
+			$lst .= "<span>({$count})</span></li>";
 			$count = 0;
 		}
-		$lst .= "</ul>
-		</li>
+		$lst .= "</ul></li>
 		";
 	}
 	$lst .= "</ul>";
 	return $lst;
 }
-function index_page($post_array){		
+function index_page($post_array,$read_meta){		
 	foreach($post_array as $postid => $metadata){	
-		$postmeta = rtrim($metadata,"%");
+		$open_file = fopen("data/".$postid,"r");
+		
+		if($read_meta == true){
+			$postmeta = fread($open_file,128);
+			$postmeta = rtrim($postmeta,"%");
+			fseek($open_file,128);
+		}
+		else{
+			$postmeta = rtrim($metadata,"%");
+			fseek($open_file,128);
+		}
+		
 		$split_meta = explode("|",$postmeta);
 		$meta_date = $split_meta[0];
 		$meta_title = $split_meta[1];
 		$meta_url = $split_meta[2];
 		$meta_tags = explode(",",$split_meta[3]);
 		foreach($meta_tags as $val){
-		$tag .= "<a title=\"tagged as {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>
-		";
+		$tag .= "<a title=\"tagged as {$val}\" ";
+		$tag .= "class=\"label label-primary\" ";
+		$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
 		}
-		$open_file = fopen("data/".$postid,"r");
-		fseek($open_file,128);
 		$read_file = fread($open_file,filesize("data/".$postid));
 		$pattern = '/src="([^"]*)"/';
 		preg_match($pattern, $read_file, $matches);
@@ -329,7 +334,7 @@ function index_page($post_array){
 		if($src == ""){
 			$konten = substr($konten, 0, $cutlastword);
 			$konten = "<div class=\"row\">
-			   <p>{$konten}
+			   <p>{$konten} ...
 			  <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
 			  </p>
 			</div>
@@ -343,7 +348,7 @@ function index_page($post_array){
 				  <img title=\"{$meta_title}\" alt=\"{$meta_title}\" src=\"{$src}\"/>
 				</a>
 			  </div>
-			  <p>{$konten}
+			  <p>{$konten} ...
 			  <span><a title=\"Read article {$meta_title}\" href=\"".SITE_URL."/{$meta_url}\">Readmore</a></span>
 			  </p>
 			</div>
@@ -416,23 +421,30 @@ function page_navi($count,$page,$prefix_url){
 		if(in_array($current,$stack[$i])){  
 			if($i > 0){
 				$output .= "<li>";
-				$output .= "<a title=\"Go to previous page\" class='page-numbers' href='{$prefix}".($current - 1)."'>&laquo;</a>";
+				$output .= "<a title=\"Go to previous page\" ";
+				$output .= "class=\"page-numbers\" ";
+				$output .= "href=\"{$prefix}".($current - 1)."\">&laquo;</a>";
 				$output .= "</li>";
 			}
 			foreach($stack[$i] as $raw){
 			if($raw == $current){
 				$output .= "<li class=\"active\">";
-				$output .= "<span title=\"Current page\" class='page-numbers current'>{$raw}</span>";
+				$output .= "<span title=\"Current page\" ";
+				$output .= "class=\"page-numbers current\">{$raw}</span>";
 				$output .= "</li>";
 			}else{
 				$output .= "<li>";
-				$output .= "<a title=\"Go to page {$raw}\" class='page-numbers' href='{$prefix}".$raw."'>{$raw}</a>";
+				$output .= "<a title=\"Go to page {$raw}\" ";
+				$output .= "class=\"page-numbers\" ";
+				$output .= "href=\"{$prefix}".$raw."\">{$raw}</a>";
 				$output .= "</li>";
 			}
 			}
 			if($current < $total_item){
 				$output .= "<li>";
-				$output .= "<a title=\"Go to next page\" class='page-numbers' href='{$prefix}".($current + 1)."'>&raquo;</a>";
+				$output .= "<a title=\"Go to next page\" ";
+				$output .= "class=\"page-numbers\" ";
+				$output .= "href=\"{$prefix}".($current + 1)."\">&raquo;</a>";
 				$output .= "</li>";
 			}
 			break 1;
@@ -449,8 +461,9 @@ function format_post($filename){
 	$split_meta = explode("|",$read_meta);
 	$meta_tags = explode(",",$split_meta[3]);
 	foreach($meta_tags as $val){
-	$tag .= "<a title=\"post tagged in {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>
-	";
+	$tag .= "<a title=\"post tagged in {$val}\" ";
+	$tag .= "class=\"label label-primary\" ";
+	$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a>";
 	}
 	fseek($handle,128);
 	$konten = fread($handle,filesize("data/".$filename) - 128);
@@ -610,7 +623,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					$_SESSION["TIMES"] = 0;
 					$_SESSION["LOGIN"] = "almost";
 					$msg_1 = "Its correct!, you can continue...<br>
-					<a href=\"".SITE_URL."/backstage\" class=\"btn btn-primary\">Continue</a> or back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a><br><hr>
+					<a href=\"".SITE_URL."/backstage\" class=\"btn btn-primary\">Continue</a>
+					or back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a><br><hr>
 					{$copyright}
 					";
 				}
@@ -619,7 +633,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			}
 			if($_SESSION["LOGIN"] == "almost"){
 				$_SESSION["TIMES"]++;
-				$msg_2 = "<h1>".SITE_TITLE." &middot; <small>Backstage Area</small></h1>";
+				$msg_2 = "<h1>".SITE_TITLE." &middot;
+				<small>Backstage Area</small></h1>";
 				$msg_3 = "
 				{$msg_2}
 				<div style=\"margin-top:20px\" class=\"row\">
@@ -1178,7 +1193,7 @@ elseif(count($get_request >= 2)){
 			$output = "Not found";
 		}
 		else{
-			$output = $post->index_page(array_flip($chunk[$page -  1]));
+			$output = $post->index_page(array_flip($chunk[$page -  1]),true);
 		}
 		
 		$body1 = "
