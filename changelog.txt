@@ -2,6 +2,9 @@ Full Changelog
 
 v.0.1.4 (28/3/2015)
 now, post saved in json format
+permalink is auto generated (if field is empty)
+title is auto generated, like Untitled-1 (if field is empty)
+tag is auto generated, named "out-topic" (if field is empty)
 admin area layout changes
 added "edit" link every post
 added favicon.ico
