@@ -827,13 +827,25 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					}
 					$date = date("d F Y");
 					$title = $_POST["title"];
+					$title = $post->strip_html_tags($title);
 					$url = $_POST["url"];
 					$tag = $_POST["tag"];
+					
+					if(!isset($title) || $title == ""){
+						$title = "Untitled-{$latest}";
+					}
+					if(!isset($url) || $url == ""){
+						$url = str_replace(" ","-",strtolower($title));	
+					}
+					if(!isset($tag) || $tag == ""){
+						$tag = "out-topic";
+					}
+
 					$konten = $_POST["konten"];
 					$meta = array("date" => $date,"title" => $title,"url" => $url,"tag" => $tag,"konten" => $konten);
 					$data = json_encode($meta,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 					if(in_array("",$meta)){
-						$_SESSION["msg"] = "All field must not empty";
+						$_SESSION["msg"] = "No post ?";
 						header("Location: ".SITE_URL."/backstage/create");
 						exit;
 					}
