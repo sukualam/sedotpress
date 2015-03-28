@@ -64,6 +64,9 @@ error_reporting(0);
 /* ------- feel some bugs? go hack this ------ */
 /* --------------- THANK YOU ------------------*/
 
+# start session ....
+session_start();
+
 ## i call it url routing (maybe wrong :D), but it works.
 $find_base = explode("/",rtrim(SITE_URL,"/"),4);
 if(! isset($find_base[3]) || $find_base[3] == ""){
@@ -74,6 +77,7 @@ else{
 }
 $get_request = explode("/",$requested);
 array_shift($get_request);
+
 # this is just for WYSIWYG editor (summernote)
 $extracss = "
 <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css\">
@@ -83,7 +87,15 @@ $extrajs = "
 <script src=\"https://cdnjs.cloudflare.com/ajax/libs/summernote/0.6.2/summernote.min.js\"></script>
 <script>$(document).ready(function(){\$('#konten').summernote();});</script>";
 
+## toggle admin
+if(isset($_SESSION["LOGIN"])){
+	$is_admin = true;
+}
+else{
+	$is_admin = false;
+}
 
+## Sedotpress class
 class sedot{
 /*
 function: create_index()
@@ -98,8 +110,11 @@ function create_index(){
 	$reversed = array_reverse($scandir);
 	foreach($reversed as $filename){
 		$handle = fopen($dir.$filename,"r");
-		$read = fread($handle,128);
-		$container[$filename] = trim($read,"%");
+		$read = fread($handle,filesize($dir.$filename));
+		$dec = json_decode($read,true);
+		$metadata = $dec['date']."|".$dec['title']."|".$dec['url']."|".$dec['tag'];
+		$container[$filename] = $metadata;
+		unset($dec);
 		fclose($handle);
 	}
 	if(file_exists("sitemap.xml")){
@@ -132,9 +147,9 @@ function create_index(){
 			$title = $explode[1];
 			$url = SITE_URL."/{$explode[2]}";
 			$open_file = fopen("data/{$postid}","r");
-			fseek($open_file,128);
 			$read_file = fread($open_file,filesize("data/{$postid}"));
-			$read_file = htmlentities($read_file);
+			$dec = json_decode($read_file,true);
+			$read_file = htmlentities($dec["konten"]);
 			fclose($open_file);
 			$temp_data[] = "
 			<item>
@@ -300,20 +315,24 @@ function arsip(){
 	$lst .= "</ul>";
 	return $lst;
 }
-function index_page($post_array,$read_meta){		
+function index_page($post_array,$read_meta,$is_admin){
+
 	foreach($post_array as $postid => $metadata){	
 		$open_file = fopen("data/".$postid,"r");
-		
+		$read_file = fread($open_file,filesize("data/".$postid));
+		$dec = json_decode($read_file,true);
 		if($read_meta == true){
-			$postmeta = fread($open_file,128);
-			$postmeta = rtrim($postmeta,"%");
-			fseek($open_file,128);
+			$postmeta = $dec['date']."|".$dec['title']."|".$dec['url']."|".$dec['tag'];
 		}
 		else{
-			$postmeta = rtrim($metadata,"%");
-			fseek($open_file,128);
+			$postmeta = $metadata;
 		}
-		
+		if($is_admin == true){
+			$editurl = "<a class=\"label label-warning\" href=\"".SITE_URL."/backstage/edit/?id={$postid}\">EDIT</a>";
+		}
+		else{
+			$editurl = "";
+		}
 		$split_meta = explode("|",$postmeta);
 		$meta_date = $split_meta[0];
 		$meta_title = $split_meta[1];
@@ -324,11 +343,11 @@ function index_page($post_array,$read_meta){
 		$tag .= "class=\"label label-primary\" ";
 		$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
 		}
-		$read_file = fread($open_file,filesize("data/".$postid));
+		
 		$pattern = '/src="([^"]*)"/';
-		preg_match($pattern, $read_file, $matches);
+		preg_match($pattern, $dec["konten"], $matches);
 		$src = $matches[1];
-		$konten = self::strip_html_tags($read_file);
+		$konten = self::strip_html_tags($dec["konten"]);
 		$konten = substr($konten,0,270);
 		$cutlastword = strrpos($konten, ' ');
 		$konten = substr($konten, 0, $cutlastword);
@@ -361,7 +380,7 @@ function index_page($post_array,$read_meta){
 			<div style=\"margin-bottom:25px\" class=\"row\">
 			<h2><a title=\"{$meta_title}\" rel=\"bookmark\" href=\"".SITE_URL."/{$meta_url}\">{$meta_title}</a></h2>
 			<time title=\"date posted\" class=\"badge\" datetime=\"".date('d-m-Y', strtotime($meta_date))."\">{$meta_date}</time>
-			<span>{$tag}</span>
+			<span>{$tag} {$editurl}</span>
 			</div>
 			{$konten}
 		  </div>
@@ -457,17 +476,17 @@ function page_navi($count,$page,$prefix_url){
 }
 function format_post($filename){
 	$handle = fopen("data/".$filename,"r");
-	$read_meta = fread($handle,128);
-	$read_meta = rtrim($read_meta,"%");
-	$split_meta = explode("|",$read_meta);
+	$read_meta = fread($handle,filesize("data/".$filename));
+	$dec = json_decode($read_meta,true);
+	$metadata = $dec['date']."|".$dec['title']."|".$dec['url']."|".$dec['tag'];
+	$split_meta = explode("|",$metadata);
 	$meta_tags = explode(",",$split_meta[3]);
 	foreach($meta_tags as $val){
 	$tag .= "<a title=\"post tagged in {$val}\" ";
 	$tag .= "class=\"label label-primary\" ";
 	$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
 	}
-	fseek($handle,128);
-	$konten = fread($handle,filesize("data/".$filename) - 128);
+	$konten = $dec["konten"];
 	// insert to property
 	$this->post->title = $split_meta[1];
 	$this->post->permalink = $split_meta[2];
@@ -489,7 +508,7 @@ function _header($a,$b,$c,$d){
 	<title>{$a}</title>
 	<link href=\"".SITE_URL."/rss\" rel=\"alternate\" type=\"application/rss+xml\"/>
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
-    
+    <link rel=\"icon\" type=\"image/x-icon\" href=\"".SITE_URL."/favicon.ico\">
 	
     <!--[if lt IE 9]>
       <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
@@ -560,7 +579,7 @@ function strip_html_tags($text){
  */
 
 // widgets, yeah
-$copyright = "&copy; 2015 sedot.space | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
+$copyright = "&copy; 2015 ".SITE_TITLE." | Powered by <a href=\"https://github.com/sukualam/sedotpress\">Sedotpress</a>";
 
 $search_form = "
 <h3>Search</h3>
@@ -601,7 +620,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -----------------
 			## THIS IS BACKSTAGE
 			## -----------------
-			session_start();
+			
 			$post = new sedot;
 			$auth = $_SESSION["AUTHENTIC"];
 			if($auth == "" || $_SESSION["TIMES"] == 5){
@@ -612,13 +631,18 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			}
 			if($auth == "nobody" && strlen($_SESSION["LOGIN"]) <= 1){
 				$_SESSION["TIMES"] += 1;
-				$msg_1 = "Your code is <b>{$_SESSION["KEY"]}</b>
+				$msg_1 = "<!DOCTYPE html><html><head><title>[Backstage] - ".SITE_TITLE."</title>
+				<style>body{background:#eee;text-align:center}</style></head>
+				<body>
+				Your code is <b>{$_SESSION["KEY"]}</b>
 				Enter it here <form action=\"".SITE_URL."/backstage\" method=\"post\">
 				<input type=\"text\" name=\"key\">
 				<input type=\"submit\">
 				</form>
 				Back to <a href=\"".SITE_URL."\">".SITE_TITLE."</a><br><hr>
 				{$copyright}
+				</body>
+				</html>
 				";
 				if($_POST["key"] == $_SESSION["KEY"]){
 					$_SESSION["TIMES"] = 0;
@@ -677,9 +701,12 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			#echo "WELCOME! session_id: {$_SESSION["LOGIN"]}";
 			$request = $get_request[1];
 			$menu = "
-				[<a href=\"".SITE_URL."/backstage/\">Backstage</a>]
+				<div class=\"well\">
+				<b>Menu</b> : [<a href=\"".SITE_URL."/backstage/\">Backstage</a>]
 				[<a href=\"".SITE_URL."/backstage/manage\">Manage</a>]
-				[<a href=\"".SITE_URL."/backstage/create\">Create</a>]";
+				[<a href=\"".SITE_URL."/backstage/create\">Create</a>]
+				[<a target=\"_blank\" href=\"".SITE_URL."\"><b>View Blog</b></a>]
+				</div>";
 			if($request == ""){
 				$h = "
 				<div class=\"header\">
@@ -699,12 +726,12 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				</div>
 				</div>
 				";
-				$render_head = $post->_header("Backstage");
+				$render_head = $post->_header("[Backstage] - ".SITE_TITLE);
 				$render_body = $post->_body($h);
 				$render_foot = $post->_foot($copyright);
 			}
 			elseif($request == "logout"){
-				session_start();
+				
 				session_destroy();
 				header("Location: ".SITE_URL);
 			}
@@ -715,25 +742,32 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				}else{
 					$x = 1;
 				}
-				$list = "<table class=\"table\">";
+				$list = "<div class=\"table-responsive\">
+				<table class=\"table\"><tr>
+				<th>Date</th>
+				<th>Title</th>
+				<th>Permalink</th>
+				<th>Action</th>
+				</tr>";
 				foreach($index[$x - 1] as $key => $meta){
 					$exp = explode("|",$meta);
 					$list .= "<tr><td>{$exp[0]}</td>
 					<td>{$exp[1]}</td>
 					<td>{$exp[3]}</td>
-					<td><a href=\"".SITE_URL."/backstage/edit/?id={$key}\">EDIT</a></td>
-					<td><a href=\"".SITE_URL."/backstage/delete/?id={$key}\">DELETE</a></td>
+					<td><a href=\"".SITE_URL."/backstage/edit/?id={$key}\">Edit</a>
+					<a title=\"delete with no confirmation\" href=\"".SITE_URL."/backstage/delete/?id={$key}\">Del</a>
+					</td>
 					</tr>";
 				}
-				$list .= "</table>";
+				$list .= "</table></div>";
 				$lay_00 = "<div class=\"row\">
-				<div class=\"col-md-6\"><h1>Backstage</h1></div>
+				<div class=\"col-md-6\"><h1>Manage Posts</h1></div>
 				</div>";
 				$lay_01 = "<div class=\"row\">
 				<div class=\"col-md-8\">{$list}</div>
 				</div>";
-				$render_head = $post->_header("Manage post");
-				$render_body = $post->_body($lay_00,$lay_01,$menu);
+				$render_head = $post->_header("[Manage] Page {$x} - ".SITE_TITLE);
+				$render_body = $post->_body($lay_00,$menu,$lay_01);
 				$render_foot = $post->_foot($copyright,$post->page_navi(count($index),$x,"/backstage/manage/?hal="));
 			}
 			elseif($request == "delete"){
@@ -747,26 +781,24 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			elseif($request == "edit"){
 				if(isset($_GET["id"])){
 					$handle = fopen("data/{$_GET['id']}","r");
-					$read128 = fread($handle,128);
-					$read128_trim = rtrim($read128,"%");
-					$get_meta = explode("|",$read128_trim);
-					fseek($handle,128);
-					$read_konten = fread($handle,filesize("data/{$_GET['id']}") - 128);
+					$readfile = fread($handle,filesize("data/{$_GET['id']}"));
+					$dec = json_decode($readfile,true);
 					fclose($handle);
-					$layout = "
-					<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
+					$layout = "<div class=\"header\">
+					<h1>Editing: {$dec['title']}</h1>{$menu}
+					</div><form action=\"".SITE_URL."/backstage/create\" method=\"post\">
 					<div class=\"form-group\">
 					<label>Entry</label>
-					<textarea id=\"konten\" class=\"form-control\" name=\"konten\">{$read_konten}</textarea>
+					<textarea id=\"konten\" class=\"form-control\" name=\"konten\">{$dec['konten']}</textarea>
 					<div class=\"form-group\">
 					<label>Title</label>
-					<input value=\"{$get_meta[1]}\" class=\"form-control\" type=\"text\" name=\"title\">
+					<input value=\"{$dec['title']}\" class=\"form-control\" type=\"text\" name=\"title\">
 					</div><div class=\"form-group\">
 					<label>Permalink</label>
-					<input value=\"{$get_meta[2]}\" class=\"form-control\" type=\"text\" name=\"url\">
+					<input value=\"{$dec['url']}\" class=\"form-control\" type=\"text\" name=\"url\">
 					</div><div class=\"form-group\">
 					<label>Tag</label>
-					<input value=\"{$get_meta[3]}\" class=\"form-control\" type=\"text\" name=\"tag\">
+					<input value=\"{$dec['tag']}\" class=\"form-control\" type=\"text\" name=\"tag\">
 					</div><div class=\"form-group\">
 					<input type=\"hidden\" name=\"_revise\" value=\"1\">
 					<input type=\"hidden\" name=\"_postname\" value=\"{$_GET['id']}\">
@@ -776,8 +808,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					";
 					// render
 					
-					$render_head = $post->_header("Edit post",$extracss);
-					$render_body = $post->_body($msg,$layout,$menu);
+					$render_head = $post->_header("[Edit] {$dec['title']} - ".SITE_TITLE,$extracss);
+					$render_body = $post->_body($msg,$layout);
 					$render_foot = $post->_foot($copyright,NULL,$extrajs);
 				}
 			}
@@ -798,14 +830,15 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					$url = $_POST["url"];
 					$tag = $_POST["tag"];
 					$konten = $_POST["konten"];
-					$meta = array($date,$title,$url,$tag);
+					$meta = array("date" => $date,"title" => $title,"url" => $url,"tag" => $tag,"konten" => $konten);
+					$data = json_encode($meta,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 					if(in_array("",$meta)){
 						$_SESSION["msg"] = "All field must not empty";
-						header("Location: /backstage/create");
+						header("Location: ".SITE_URL."/backstage/create");
 						exit;
 					}
-					$meta = $post->fill_string(implode("|",$meta),128);
-					$data = $meta . $konten;
+					//$meta = $post->fill_string(implode("|",$meta),128);
+					//$data = $meta . $konten;
 					$filename = "post{$latest}";
 					if(isset($_POST["_revise"])){
 						unlink("data/{$filename}");
@@ -813,10 +846,11 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 					$handle = fopen("data/{$filename}","a+");
 					$write = fwrite($handle,$data);
 					if($write != false){
-						$msg = "<div class=\"alert alert-success alert-dismissible\" role=\"alert\">";
+						$msg = "<div style=\"margin-top:30px;\" class=\"alert alert-success alert-dismissible\" role=\"alert\">";
 						$msg .= "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
 						$msg .= "<span aria-hidden=\"true\">&times;</span></button>";
-						$msg .= "Written {$filename} ".strlen($data)."bytes of file";
+						$msg .= "Post saved with filename <b>{$filename}</b> (".strlen($data)."bytes)";
+						$msg .= " <b><a target=\"_blank\" href=\"".SITE_URL."/{$url}\">View Post</a></b>";
 						$msg .= "</div>";
 						fclose($handle);
 						$post->create_index();
@@ -830,7 +864,11 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				else{
 					$msg_err = "";
 				}
-				$layout = "{$msg_err}
+				$layout = "<div class=\"header\">
+				<h1>Create a Post</h1>
+				</div>
+				{$msg_err}
+					{$menu}
 				<form action=\"".SITE_URL."/backstage/create\" method=\"post\">
 				<div class=\"form-group\">
 				<label>Entry</label>
@@ -852,8 +890,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 				</div></form>
 				";
 				// render
-				$render_head = $post->_header("Create a Post",$extracss);
-				$render_body = $post->_body($msg,$layout,$menu);
+				$render_head = $post->_header("[Create] ".date("d F Y")." - ".SITE_TITLE,$extracss);
+				$render_body = $post->_body($msg,$layout);
 				$render_foot = $post->_foot($copyright,NULL,$extrajs);
 			}
 			elseif($request == "backup"){
@@ -867,7 +905,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			## -------------------
 			$post = new sedot;
 			$index = $post->load_index();
-			session_start();
+			
 			if(isset($_SESSION["celeng"])){
 				$capcay_old = $_SESSION["celeng"];
 			}
@@ -999,6 +1037,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		## ------------------
 		$post = new sedot;
 		$index = $post->load_index();
+		
 		$pagenum = 1;
 		$pointer = $index[$pagenum - 1];
 		//custom template
@@ -1009,7 +1048,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
-			{$post->index_page($pointer)}
+			{$post->index_page($pointer,false,$is_admin)}
 			</div>
 			<div class=\"col-md-2\">
 			{$search_form}
@@ -1039,6 +1078,7 @@ elseif(count($get_request >= 2)){
 		## ----------------------
 		$post = new sedot;
 		$index = $post->load_index();
+		
 		$pagenum = $get_request[1];
 		$pointer = $index[$pagenum - 1];
 		$body_contain = "
@@ -1051,7 +1091,7 @@ elseif(count($get_request >= 2)){
 		</div>
 		<div class=\"row\">
 			<div class=\"col-md-7\">
-			{$post->index_page($pointer)}
+			{$post->index_page($pointer,false,$is_admin)}
 			</div>
 			<div class=\"col-md-2\">
 			{$search_form}
@@ -1068,6 +1108,9 @@ elseif(count($get_request >= 2)){
 		$render_foot = $post->_foot($copyright,$post->page_navi(count($index),$pagenum));
 	}
 	elseif($get_request[0] == "search" || $get_request[0] == "tag" || $get_request[0] == "timeline"){
+		## ---------------------------------
+		## THIS IS SEARCH || TAG || TIMELINE
+		## ---------------------------------
 		if(isset($_POST["q"])){
 			$filter = str_replace(" ","+",$_POST["q"]);
 			header("Location: ".SITE_URL."/{$get_request[0]}/{$filter}");
@@ -1140,6 +1183,7 @@ elseif(count($get_request >= 2)){
 		#var_dump($query);
 		$post = new sedot;
 		$index = $post->load_index();
+		
 		$count = count($index);
 		for($i = 0;$i <= $count;$i++){
 			foreach($index[$i] as $key => $value){
@@ -1194,7 +1238,7 @@ elseif(count($get_request >= 2)){
 			$output = "Not found";
 		}
 		else{
-			$output = $post->index_page(array_flip($chunk[$page -  1]),true);
+			$output = $post->index_page(array_flip($chunk[$page -  1]),true,$is_admin);
 		}
 		
 		$body1 = "
@@ -1227,7 +1271,7 @@ elseif(count($get_request >= 2)){
 		}
 	}
 	else{
-		session_start();
+		
 		if(isset($_SESSION["LOGIN"])){
 			$post = new sedot;
 			$index = $post->load_index();
