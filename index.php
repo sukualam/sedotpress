@@ -978,7 +978,8 @@ if(count($get_request) == 1 || $get_request[0] == "backstage"){
 			}
 			$print = $post->format_post($file_pointer);
 			// custom template
-			$meta_desc = "<meta name=\"description\" content=\"".$post->strip_html_tags(substr($post->post->content,0,150))."\">";
+			$cut_desc = $post->strip_html_tags($post->post->content);
+			$meta_desc = "<meta name=\"description\" content=\"".$post->strip_html_tags(substr($cut_desc,0,150))."\">";
 			$body_contain = "
 			<div class=\"site-title\">
 			<h1><a href=\"".SITE_URL."\">".SITE_TITLE."</a></h1>
