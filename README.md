@@ -9,7 +9,7 @@ Latest releases: https://github.com/sukualam/sedotpress/releases
 * Edit some configuration in index.php, save it
 * Make sure folder "data" & "comment" writable (you can chmod it)
 * You ready to go
-* (Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess)
+* (Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess, see https://github.com/sukualam/sedotpress/issues/1)
 
 
 ## Recent Changelog
