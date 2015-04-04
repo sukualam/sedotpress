@@ -1,6 +1,7 @@
 # Sedotpress
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! demo ( http://sedot.space )
-
+## Development News
+visit http://sedot.space
 ## Downloads:
 Latest releases: https://github.com/sukualam/sedotpress/releases
 
