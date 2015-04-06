@@ -1,35 +1,29 @@
 # Sedotpress
-The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! demo ( http://sedot.space )
-## Development News
-visit http://sedot.space for latest info
+The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! All data saved in JSON format.
+
 ## Downloads:
 Latest releases: https://github.com/sukualam/sedotpress/releases
 
-## Installing:
-* Copy ".htaccess", "index.php", "data", "comment" in root directory "/"
-* Edit some configuration in index.php, save it
-* Make sure folder "data" & "comment" writable (you can chmod it)
-* You ready to go
-* (Just Note: if you place it on sub dir like "/blog", you also need edit .htaccess, see https://github.com/sukualam/sedotpress/issues/1)
+## Development Status
+visit http://sedot.space
 
+## Installing:
+* Copy ".htaccess" and "index.php"
+* Create folder "data","comment","json" then chmod it (make it writable)
+* Edit some configuration in index.php, save it
+* Done!
 
 ## Recent Changelog
-### (for full changelog, read changelog.txt)
+#### (for full changelog, read changelog.txt)
 
 ## Features
-* Fast & lightweight
-* Index caching
-* Create/edit/delete a post
+* Posts & comments saved in JSON format
+* Lightweight & Low-Resource
+* Portable
+* URL Rewriting
 * Built-In Comment System
-* Admin area (we call it backstage)
-* Search a post
-* Blog archives
-* Tags
-* Clean URL (permalink) / Url Rewrite
-* Page Navigation
-* RSS Feeds
-* Sitemap.xml generator
-* etc.. (in development..)
+* Auto Generate sitemap.xml & rss.xml
+* etc ...
 
 ##Managing and Other:
 
@@ -43,14 +37,5 @@ Latest releases: https://github.com/sukualam/sedotpress/releases
 * You can directly edit the source code, since this is just single file,
 * but, if a newer version is available, you must re-edit again
 * you advised to hacking this..
-
-
-### EXPERT GUIDE:
-#### To force rebuild index
-* after a new post is created, it automatically saving a metadata of post, called "index.json" that located same in index.php
-* you dont need to rebuild manually, but if you want to do some experiment, you can force rebuild it
-* to force rebuild, open http://(your_blog_url)/build
-* open your blog again
-* Fine :)
 
 Report bugs here, and contribute :)
