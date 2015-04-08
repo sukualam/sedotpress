@@ -1,5 +1,17 @@
 Full Changelog
 
+v.0.1.5 (8/4/2015)
+major structure changes (it wont compatible with older version)
+optimized json files
+new: language files (you can create your own)
+new: menu editor
+new: saving post in published or draft mode
+new: threaded comment + reply
+new: gravatar icon for comments
+added "website", "email" field in comment format
+added 404 page
+some bugfixes
+
 v.0.1.4 (28/3/2015)
 now, post saved in json format
 permalink is auto generated (if field is empty)
