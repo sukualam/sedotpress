@@ -2,7 +2,7 @@
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! All data saved in JSON format.
 
 ## Downloads:
-Latest releases: https://github.com/sukualam/sedotpress/releases
+https://github.com/sukualam/sedotpress/archive/master.zip
 
 ## Development Status
 visit http://sedot.space
