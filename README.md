@@ -1,21 +1,6 @@
 # Sedotpress
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! All data saved in JSON format.
 
-## Downloads:
-https://github.com/sukualam/sedotpress/archive/master.zip
-
-## Development Status
-visit http://sedot.space
-
-## Installing:
-* Copy ".htaccess" and "index.php"
-* Create folder "data","comment","json" then chmod it (make it writable)
-* Edit some configuration in index.php, save it
-* Done!
-
-## Recent Changelog
-#### (for full changelog, read changelog.txt)
-
 ## Features
 * Posts & comments saved in JSON format
 * Lightweight & Low-Resource
@@ -25,13 +10,24 @@ visit http://sedot.space
 * Auto Generate sitemap.xml & rss.xml
 * etc ...
 
+## Downloads:
+https://github.com/sukualam/sedotpress/archive/master.zip
+
+## Development Status
+Visit my blog: http://sedot.space
+
+## Installing:
+* Extract all files in the zip to server (you can place it in root "/" or subdirectory "blog/")
+* Edit some config in index.php
+* Finish!
+
+## Recent Changelog
+#### (for full changelog, read changelog.txt)
+
 ##Managing and Other:
 
 ### To enter the admin area (backstage)
 * open http://(your_blog_url)/backstage
-* Enter the code challenge
-* Enter the admin username & password
-* Fine :)
 
 ### Theme & Modification
 * You can directly edit the source code, since this is just single file,
