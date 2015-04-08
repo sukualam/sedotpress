@@ -144,7 +144,7 @@ and create a sitemap.xml and rss.xml in feed/
 function create_index(){
 	
 	## --------------------
-	## SCAN THE /data
+	## SCAN THE /sp_post
 	## --------------------
 	
 	// first, we scan all files on "sp_post/" first
