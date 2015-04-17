@@ -56,7 +56,10 @@ define("GRAV_EMAIL","example@example.com");
 
 // your blog url (sub-directory is supported)
 //(without "/" at end)
-define("SITE_URL","http://localhost");
+define("SITE_URL","http://localhost/blog");
+
+// comment item per page
+define("COMMENT_SPLIT",35);
 
 // comment to debugging
 error_reporting(0);
@@ -352,6 +355,45 @@ function load_json($param,$post){
 	$x = json_decode($str,true);
 	return $x;
 }
+// create recent comment
+function create_recent_comment($permalink,$post_title,$comments){
+	// read/write
+	$filename = "sp_comment/recent.json";
+	$fopen = fopen($filename,"r");
+	$fgets = fgets($fopen);
+	fclose($fopen);
+	$decode = json_decode($fgets,true);
+	
+	// limit 5
+	end($decode);
+	if(key($decode) >= 5){
+		array_shift($decode);
+		$new_key = 5;
+	}
+	else{
+		$new_key = key($decode);
+		$new_key++;
+	}
+	$format = array($permalink,$post_title,$comments);
+	$decode[$new_key] = $format;
+	$encode = json_encode($decode);
+	
+	// write
+	$fopen_w = fopen($filename,"w");
+	fwrite($fopen_w,$encode);
+	fclose($fopen_w);
+}
+// recent comment widget
+function recent_comment(){
+	$recent = self::load_json('COMMENT','recent');
+	$recent = array_reverse($recent,true);
+	$x = "<h3>Recent Comment</h3>";
+	foreach($recent as $list){
+		$list[2]['comment'] = substr($list[2]['comment'],0,120);
+		$x .= "<b>{$list[2]['nick']}</b> on <a href=\"".SITE_URL."/{$list[0]}\">{$list[1]}</a> : <i>{$list[2]['comment']}</i><br>";
+	}
+	return $x;
+}
 // tag widget
 function tag_cloud(){
 	$x = self::load_json('tags.json');
@@ -367,6 +409,7 @@ function tag_cloud(){
 	<h3>{$this->lang['WIDGET_LINK_TITLE']}</h3>
 	<ul>
 	<li><a title=\"".SITE_TITLE." RSS\" href=\"".SITE_URL."/rss\">{$this->lang['RSS_FEED']}</a></li>
+	<li><a title=\"".SITE_TITLE." Sitemap\" href=\"".SITE_URL."/sp_feed/sitemap.xml\">Sitemap</a></li>
 	</ul>";
 	return $lst;
 }
@@ -421,7 +464,7 @@ function index_page($post_array,$read_meta,$is_admin){
 		$meta_url = $split_meta[2];
 		$meta_tags = explode(",",$split_meta[3]);
 		foreach($meta_tags as $val){
-			$y .= "<a title=\"{$this->lang['RESULT_POST_TAGGED']} {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
+			$y .= "<a title=\"{$this->lang['RESULT_POST_TAGGED']} {$val}\" class=\"label label-primary\" href=\"".SITE_URL."/tag/".strtolower($val)."\"><i class=\"fa fa-tag\"></i> {$val}</a> ";
 		}
 		$tag = $y;
 		unset($y);
@@ -569,7 +612,7 @@ function format_post($filename){
 	foreach($meta_tags as $val){
 		$tag .= "<a title=\"{$this->lang['RESULT_POST_TAGGED']}{$val}\" ";
 		$tag .= "class=\"label label-primary\" ";
-		$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\">{$val}</a> ";
+		$tag .= "href=\"".SITE_URL."/tag/".strtolower($val)."\"><i class=\"fa fa-tag\"></i> {$val}</a> ";
 	}
 	$konten = $dec["konten"];
 	// insert to property
@@ -592,7 +635,8 @@ echo "
 {$b}
 <title>{$a}</title>
 <link href=\"".SITE_URL."/rss\" rel=\"alternate\" type=\"application/rss+xml\"/>
-<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\">
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css\">
+<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css\">
 <link rel=\"icon\" type=\"image/x-icon\" href=\"".SITE_URL."/favicon.ico\">
 <!--[if lt IE 9]>
 <script src=\"https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js\"></script>
@@ -659,7 +703,7 @@ function _body($a,$b,$c,$d){
 }
 function _foot($a,$b,$c,$d){
 	echo "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js\"></script>
-<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js\"></script>
 {$c}
 <div>{$b}</div>
 <footer style=\"padding:10px\" class=\"footer\">{$a}
@@ -1453,6 +1497,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage" || isset($_GET["co
 							$wrcom = fwrite($wr_com,$comment_json_encode);
 							// write end
 							fclose($wr_com);
+							$post->create_recent_comment($get_request[0],$post->post->title,$comment_json);
 							// format alert
 							$nocapcay = sprintf($capcay_alert,"success",$post->lang['COMMENT_PUBLISHED']);
 						}
@@ -1472,7 +1517,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage" || isset($_GET["co
 			}
 			## COMMENTS
 			$gravatar_link = 'http://www.gravatar.com/avatar/%s?s=64';
-			$comment_page_split = array_chunk($index_com,5,true);
+			$comment_page_split = array_chunk($index_com,COMMENT_SPLIT,true);
 			$delbut_link = "<a href=\"".SITE_URL."/{$get_request[0]}/?com=1&del=%s\">&times;</a>";
 			foreach($comment_page_split[$comment_page - 1] as $com_key => $key){
 				
@@ -1609,9 +1654,14 @@ if(count($get_request) == 1 || $get_request[0] == "backstage" || isset($_GET["co
 				<h2 title=\"{$post->post->title}\">{$post->post->title}</h2>
 				<time title=\"{$post->post->datetime}\" class=\"label label-success\" datetime=\"".date('d-m-Y', strtotime($post->post->datetime))."\">{$post->post->datetime}</time>
 				<span>{$post->post->tag}
-				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"{$post->lang['POST_PERMALINK_FOR']}{$post->post->title}\">{$post->lang['POST_PERMALINK']}</a>
+				<a class=\"label label-warning\" href=\"".SITE_URL."/{$post->post->permalink}\" title=\"{$post->lang['POST_PERMALINK_FOR']}{$post->post->title}\"><i class=\"fa fa-link\"></i> {$post->lang['POST_PERMALINK']}</a>
 				</span><br><br>
-				{$post_konten}
+				{$post_konten}<br>
+				<div class=\"footer\">
+				<a class=\"label label-danger\" href=\"https://plus.google.com/share?url=".SITE_URL."/{$get_request[0]}\"><i class=\"fa fa-google-plus\"></i> Share on Google+</a>
+				<a class=\"label label-primary\" href=\"https://www.facebook.com/sharer/sharer.php?u=".SITE_URL."/{$get_request[0]}\"><i class=\"fa fa-facebook-official\"></i> Share on Facebook</a>
+				<a class=\"label label-info\" href=\"https://twitter.com/home?status={$post->post->title} ".SITE_URL."/{$get_request[0]}\"><i class=\"fa fa-twitter\"></i> Share on Twitter</a>
+				</div>
 				<div class=\"row comment\">";
 					if($just_redirect == false){
 						$contain .= "
@@ -1698,7 +1748,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage" || isset($_GET["co
 				</div>
 				</div>
 			<div class=\"col-md-2\">
-			{$search_form}
+			{$post->recent_comment()}
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
@@ -1732,7 +1782,7 @@ if(count($get_request) == 1 || $get_request[0] == "backstage" || isset($_GET["co
 			{$post->index_page($pointer,false,$is_admin)}
 			</div>
 			<div class=\"col-md-2\">
-			{$search_form}
+			{$post->recent_comment()}
 			</div>
 			<div class=\"col-md-3\">
 			{$post->arsip()}
