@@ -19,6 +19,12 @@ https://github.com/sukualam/sedotpress/archive/master.zip
 * Chmod the sp_lang folder `chmod 777 -R sp_lang`
 * Finish!
 
+## URL Rewrites:
+##### Lighttpd
+* Add this line in /etc/lighttpd/lighttpd.conf  `url.rewrite = ("^/(.*)\.(.+)$" => "$0","^/(.+)/?$" => "/index.php/$1")`
+##### Apache
+* Use the .htaccess
+
 ## Latest News:
 Take a look at http://sedot.space
 
