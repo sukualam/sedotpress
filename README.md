@@ -21,7 +21,8 @@ https://github.com/sukualam/sedotpress/archive/master.zip
 
 ## URL Rewrites:
 ##### Lighttpd
-* Add this line in /etc/lighttpd/lighttpd.conf  `url.rewrite = ("^/(.*)\.(.+)$" => "$0","^/(.+)/?$" => "/index.php/$1")`
+* Add this line in /etc/lighttpd/lighttpd.conf
+* `url.rewrite = ("^/(.*)\.(.+)$" => "$0","^/(.+)/?$" => "/index.php/$1")`
 ##### Apache
 * Use the .htaccess
 
