@@ -18,7 +18,7 @@ https://github.com/sukualam/sedotpress/archive/master.zip
 * Edit some config in index.php
 * Chmod the sp_lang folder `chmod 777 -R sp_lang`
 * Finish!
-* 
+
 ## Latest News:
 Take a look at http://sedot.space
 
@@ -29,7 +29,7 @@ Take a look at http://sedot.space
 ##### To enter the admin area (backstage)
 * Open `http://(your_blog_url)/backstage`
 
-### Theme & Modification:
+##### Theme & Modification:
 * You can directly edit the source code, since this is just single file.
 * But, if a newer version is available, you must re-edit again.
 
