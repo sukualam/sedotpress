@@ -19,6 +19,7 @@ Visit my blog: http://sedot.space
 ## Installing:
 * Extract all files in the zip to server (you can place it in root "/" or subdirectory "blog/")
 * Edit some config in index.php
+* `chmod 777 -R sp_lang`
 * Finish!
 
 ## Recent Changelog
