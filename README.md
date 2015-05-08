@@ -28,7 +28,8 @@ https://github.com/sukualam/sedotpress/archive/master.zip
 * Use the .htaccess
 
 ## Latest News:
-Take a look at http://sedot.space
+* 8/5/2015: This script totaly beginning, so, dont expect too much like wordpress function, but this script still in development way, if you see any bugs or suggestions, i will happy if you report it here.
+* To get the latest news and development status, visit my blog http://sedot.space
 
 ## Recent Changelog:
 ##### (for full changelog, read changelog.txt)
