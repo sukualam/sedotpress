@@ -1,5 +1,18 @@
 Full Changelog
 
+v.0.1.7
+backstage now in separate file (admin.php)
+temporary disabled: builtin comment (can someone give me the idea??)
+new: custom template (create your own template)
+enhanced index caching by splitting index to separate file
+new: builtin widget
+major structure changes, not compatible to older version
+changed login method + blacklist ip
+enhanced url routing
+
+v.0.1.6 (??)
+code rewritten, skip to v.0.1.7
+
 v.0.1.5 (8/4/2015)
 major structure changes (it wont compatible with older version)
 optimized json files
