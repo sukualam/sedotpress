@@ -1,3 +1,5 @@
+[DISCONTINUED]
+
 # Sedotpress
 The new lightweight and low-resources blogging platform written in PHP. It is single-file Flat-file blogging engine. No database required! All data saved in JSON format.
 
