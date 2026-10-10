@@ -1,5 +1,27 @@
 Full Changelog
 
+v.0.2.0 (10/10/2026)
+full PHP 8.x compatibility overhaul (tested on PHP 8.3, zero warnings/notices on E_ALL)
+config moved from hardcoded define() to config.json (auto-generated on first run, gitignored)
+all filesystem paths are now absolute (fixes broken data folder locations on some setups)
+re-enabled builtin comment system: pending/approved/spam moderation, honeypot, rate limit, gravatar, comment count
+added CSRF tokens on all admin forms and comment form
+admin password now supports bcrypt hashes (plaintext legacy still accepted)
+fixed post id path traversal (Windows backslash) - ids validated as digits only
+fixed fatal errors on missing files in PHP 8 (loadFile/loadJson now return empty values)
+fixed off-by-one in backstage page navigation widget
+fixed widget manager: 1-based key bug made move-up/delete no-ops; keys normalized to 0-based
+fixed Blogger import: single-entry XML files now imported correctly; original publish date kept
+import/export: Blogger XML import + JSON backup download in backstage
+new routes: /rss (+ /rss.xml), /sitemap.xml, /robots.txt, search box in navbar
+search supports multi-word queries (date/title/permalink/tag matching)
+edit post keeps the original publish date; reserved slugs and duplicate permalinks rejected
+theme updated to Bootstrap 5.3 + Font Awesome 6 (CDN), Quill editor replaces Summernote (no jQuery)
+theme escapes all output (XSS safe), shows a proper 404/empty state, comment form restored
+new widgets: recent posts, search box; tag/archive widgets fixed (date parsing)
+.data folders and config.json blocked from web access (.htaccess + router.php + .gitignore)
+added router.php for PHP built-in dev server (php -S localhost:8000 router.php)
+
 v.0.1.7
 backstage now in separate file (admin.php)
 temporary disabled: builtin comment (can someone give me the idea??)

@@ -1,8 +1,24 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
+
+RewriteRule ^(?:sp_post|sp_static)/ - [F,L]
+RewriteRule ^config\.json$ - [F,L]
+
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+	<Files "config.json">
+		Require all denied
+	</Files>
+</IfModule>
+<IfModule !mod_authz_core.c>
+	<Files "config.json">
+		Order allow,deny
+		Deny from all
+	</Files>
 </IfModule>

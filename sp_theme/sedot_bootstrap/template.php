@@ -1,98 +1,198 @@
 <?php
-if(!defined("SEDOT_VER")){die();}
+if (!defined('SEDOT_VER')) {
+	die();
+}
 
-
-/* load user widget */
 $post->enableWidget();
-
-/* override widget that not declared ini config.ini */
 $post->createWidget('head');
 $post->createWidget('header');
 
-if($_PAGE_404){
-	$message = '<div class="col-md-12">
-				<h1>404 NOT FOUND</h1>
-				</div>';	
-	$post->addWidget('index-top',$message);
+$entries = is_array($entries ?? null) ? $entries : [];
+$tagLine = '';
+$titleTag = '';
+$metaDescription = '';
+
+if ($_PAGE_404) {
+	$box404 = '<div class="col-12"><div class="alert alert-warning" role="alert">
+	<h1 class="h4 alert-heading">404 — Page Not Found</h1>
+	<p class="mb-0">The page you are looking for does not exist. Try the <a href="' . sedot::e($post->_url()) . '">homepage</a>.</p>
+	</div></div>';
+	$post->addWidget($_FRONT_PAGE ? 'index-top' : 'post-top', $box404);
+	$titleTag = '<title>404 Not Found - ' . sedot::e(SITE_TITLE) . '</title>';
 }
-if($_FRONT_PAGE){
-	if($getRequest[0] == "page"){
-		$title = '<title>'.SITE_TITLE.' | page '. $getRequest[1] . '</title>';
-	}elseif($_SEARCH_MODE){
-		$_page = isset($getRequest[3]) ? ' | page '.$getRequest[3] : '';
-		$title = '<title>'.SITE_TITLE.' - '. $getRequest[1] . $_page . '</title>';
-	}else{
-		$title = '<title>'.SITE_TITLE.' - '.SITE_DESC.'</title>';
+
+if ($_FRONT_PAGE) {
+	if ($_SEARCH_MODE) {
+		$pageLabel = isset($getRequest[3]) && $getRequest[2] === 'page' ? ' | page ' . sedot::e($getRequest[3]) : '';
+		$titleTag  = '<title>' . sedot::e(SITE_TITLE) . ' - ' . sedot::e($searchQuery) . $pageLabel . '</title>';
+	} elseif (($getRequest[0] ?? '') === 'page') {
+		$titleTag = '<title>' . sedot::e(SITE_TITLE) . ' | page ' . sedot::e((string)($getRequest[1] ?? '1')) . '</title>';
+	} else {
+		$titleTag = '<title>' . sedot::e(SITE_TITLE) . ' - ' . sedot::e(SITE_DESC) . '</title>';
 	}
-	$metaDescription = '<meta name="description" content="'.SITE_TITLE.' - '.SITE_DESC.'">';	
-	
-	foreach($entries as $id => $entry){
-		foreach($entry['tag'] as $label){	
-			$tags[] = '<a class="label label-success" href="'.$post->_url('/tag/'.$label).'">'.$label.'</a>';	
+	$metaDescription = '<meta name="description" content="' . sedot::e(SITE_TITLE . ' - ' . SITE_DESC) . '">';
+
+	$format = '';
+	foreach ($entries as $id => $entry) {
+		$tagLine = '';
+		foreach (($entry['tag'] ?? []) as $label) {
+			$tagLine .= '<a class="badge text-bg-success text-decoration-none" href="' . sedot::e($post->_url('/tag/' . rawurlencode($label))) . '">' . sedot::e($label) . '</a> ';
 		}
-		$format[] = 	'<div class="col-md-12">
-						 <article>
-							<h2><a title="'.$entry['title'].'" href="'.$entry['url'].'">'.$entry['title'].'</a></h2>
-							<div class="tags"><time class="label label-info">'.date('d-M-Y h:m', strtotime($entry['date'])).'</time>
-							'.implode(' ',$tags).'</div>&nbsp;
-							<div class="">
-							<p><a href="#" class="thumbnail">
-							<img alt="'.$entry['title'].'" style="max-width:200px;max-height:200px" title="'.$entry['title'].'" src="'.$entry['image'].'">
-							</a>'.$post->getExcerpt($entry['entry'],250).'</p></div>			
-						 </article>
-						 </div>';
-		unset($tags);
+		$thumb = '';
+		if (!empty($entry['image'])) {
+			$thumb = '<a class="float-start me-3 mb-2" href="' . sedot::e($entry['url']) . '">'
+				. '<img class="img-thumbnail" alt="' . sedot::e($entry['title']) . '" style="max-width:200px;max-height:200px" src="' . sedot::e($entry['image']) . '">'
+				. '</a>';
+		}
+		$format .= sprintf(
+			'<div class="col-12 mb-4"><article>
+			<h2 class="h4 mb-2"><a href="%1$s">%2$s</a></h2>
+			<div class="mb-2"><time class="badge text-bg-info" datetime="%3$s">%4$s</time> %5$s</div>
+			<p>%6$s%7$s</p>
+			</article></div>',
+			sedot::e($entry['url']),
+			sedot::e($entry['title']),
+			sedot::e((string)$entry['date']),
+			sedot::e(date('d M Y H:i', strtotime((string)$entry['date']))),
+			$tagLine,
+			$thumb,
+			sedot::e($post->getExcerpt((string)$entry['entry'], 250))
+		);
 	}
-	$post->addWidget('index-top',implode('',$format));
-	$post->addWidget('head',$title);
-	$post->addWidget('head',$metaDescription);
-}
-if($_SINGLE_POST){
-	foreach($entry['tag'] as $label){	
-			$tags[] = '<a class="label label-success" href="'.$post->_url('/tag/'.$label).'">'.$label.'</a>';	
+	if ($format === '') {
+		$empty = $_SEARCH_MODE
+			? 'No results for &ldquo;' . sedot::e($searchQuery) . '&rdquo;.'
+			: 'No posts published yet.';
+		$format = '<div class="col-12"><div class="alert alert-info">' . $empty . '</div></div>';
 	}
-	$title = '<title>'.$entry['title'].' - '.SITE_TITLE.'</title>';
-	$metaDescription = '<meta name="description" content="'.$post->getExcerpt($entry['entry'],160).'">';	
-	$format = 	'<div class="col-md-12">
-					<article>
-					<h2>'.$entry['title'].'</h2>
-					<span>'.implode(' ',$tags).'</span><br>
-					'.$entry['entry'].'
-					</article>
-				 </div>';
-	$post->addWidget('head',$title);
-	$post->addWidget('head',$metaDescription);
-	$post->addWidget('post-top',$format);
+	$post->addWidget('index-top', $format);
+	$post->addWidget('head', $titleTag);
+	$post->addWidget('head', $metaDescription);
+} elseif ($_SINGLE_POST && is_array($entry)) {
+	$tagLine = '';
+	foreach (($entry['tag'] ?? []) as $label) {
+		$tagLine .= '<a class="badge text-bg-success text-decoration-none" href="' . sedot::e($post->_url('/tag/' . rawurlencode($label))) . '">' . sedot::e($label) . '</a> ';
+	}
+	$titleTag       = '<title>' . sedot::e($entry['title']) . ' - ' . sedot::e(SITE_TITLE) . '</title>';
+	$metaDescription = '<meta name="description" content="' . sedot::e($post->getExcerpt((string)$entry['entry'], 160)) . '">';
+
+	$commentsHtml = '<section id="comments" class="mt-4">';
+	$commentsHtml .= '<h3 class="h5">Comments (' . count($comments ?? []) . ')</h3>';
+	if (!empty($commentFlash)) {
+		$commentsHtml .= '<div class="alert alert-' . sedot::e($commentFlash['type'] ?? 'info') . '" role="alert">' . sedot::e($commentFlash['text'] ?? '') . '</div>';
+	}
+	if (empty($comments)) {
+		$commentsHtml .= '<p class="text-muted">No comments yet, be the first!</p>';
+	}
+	foreach (($comments ?? []) as $comment) {
+		$commentUrl = (string)($comment['url'] ?? '');
+		$linkHtml   = '';
+		if ($commentUrl !== '' && filter_var($commentUrl, FILTER_VALIDATE_URL)) {
+			$linkHtml = ' <a class="text-decoration-none" href="' . sedot::e($commentUrl) . '" rel="nofollow noopener"><small>(website)</small></a>';
+		}
+		$commentsHtml .= sprintf(
+			'<div class="d-flex gap-3 mb-3 border-bottom pb-3">
+			<img class="rounded-circle flex-shrink-0" src="%1$s" width="48" height="48" alt="" loading="lazy">
+			<div class="flex-grow-1">
+			<b>%2$s</b>%3$s <small class="text-muted">— %4$s</small>
+			<div class="mt-1">%5$s</div>
+			</div>
+			</div>',
+			sedot::e(sedot::gravatar((string)($comment['email'] ?? ''), 48)),
+			sedot::e((string)($comment['name'] ?? '')),
+			$linkHtml,
+			sedot::e(date('d M Y H:i', strtotime((string)($comment['date'] ?? '')))),
+			nl2br(sedot::e((string)($comment['content'] ?? '')))
+		);
+	}
+
+	$commentsHtml .= sprintf(
+		'<form method="post" action="%1$s" class="mt-3" id="commentForm">
+		%2$s
+		<input type="hidden" name="sp_action" value="comment">
+		<input type="hidden" name="post_id" value="%3$s">
+		<input type="hidden" name="sp_ts" value="%4$d">
+		<input type="text" name="sp_trap" value="" tabindex="-1" autocomplete="off" class="d-none" aria-hidden="true">
+		<div class="row">
+		<div class="col-md-4 mb-3"><label class="form-label" for="c-name">Name *</label>
+		<input class="form-control" id="c-name" type="text" name="cname" maxlength="50" required></div>
+		<div class="col-md-4 mb-3"><label class="form-label" for="c-email">Email (optional, for Gravatar)</label>
+		<input class="form-control" id="c-email" type="email" name="cemail"></div>
+		<div class="col-md-4 mb-3"><label class="form-label" for="c-url">Website (optional)</label>
+		<input class="form-control" id="c-url" type="url" name="curl" placeholder="https://"></div>
+		</div>
+		<div class="mb-3"><label class="form-label" for="c-body">Comment *</label>
+		<textarea class="form-control" id="c-body" name="cbody" rows="4" maxlength="5000" required></textarea></div>
+		<button class="btn btn-primary" type="submit">Post Comment</button>
+		</form>',
+		sedot::e($post->_url((string)$entry['permalink'])),
+		sp_csrf_field(),
+		sedot::e((string)($entry['id'] ?? '')),
+		time()
+	);
+	$commentsHtml .= '</section>';
+
+	$format = sprintf(
+		'<div class="col-12"><article>
+		<h1 class="h3">%1$s</h1>
+		<div class="mb-3"><time class="badge text-bg-info" datetime="%2$s">%3$s</time> %4$s</div>
+		<div class="post-content">%5$s</div>
+		</article>%6$s</div>',
+		sedot::e($entry['title']),
+		sedot::e((string)$entry['date']),
+		sedot::e(date('d M Y H:i', strtotime((string)$entry['date']))),
+		$tagLine,
+		(string)($entry['entry'] ?? ''),
+		$commentsHtml
+	);
+	$post->addWidget('head', $titleTag);
+	$post->addWidget('head', $metaDescription);
+	$post->addWidget('post-top', $format);
 }
 
-$header = sprintf('
-	<h1>%s <small>%s</small></h1>',
-	sprintf('<a href="%1$s">%2$s</a>',SITE_URL,SITE_TITLE),SITE_DESC);
-
-$post->addWidget('header',$header);
-$generator = '<meta name="generator" content="sedotpress-'.SEDOT_VER.'">';
-$post->addWidget('head',$generator);
+$header = sprintf(
+	'<h1 class="mb-0"><a class="text-decoration-none" href="%1$s">%2$s</a></h1><p class="lead mb-0">%3$s</p>',
+	sedot::e($post->_url()),
+	sedot::e(SITE_TITLE),
+	sedot::e(SITE_DESC)
+);
+$post->addWidget('header', $header);
+$post->addWidget('head', '<meta name="generator" content="sedotpress-' . sedot::e(SEDOT_VER) . '">');
+if ($titleTag === '' || !$_FRONT_PAGE && !$_SINGLE_POST && !$_PAGE_404) {
+	$post->addWidget('head', '<title>' . sedot::e(SITE_TITLE) . ' - ' . sedot::e(SITE_DESC) . '</title>');
+}
+$post->addWidget('head', '<link rel="alternate" type="application/rss+xml" title="' . sedot::e(SITE_TITLE) . ' RSS" href="' . sedot::e(sedot::_url('rss')) . '">');
 ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->  
     <?php $post->widgetSection('head'); ?>
-    <!-- Bootstrap -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   </head>
   <body>
   <?php $post->widgetSection('top'); ?>
-  <header class="site-header">
+  <nav class="navbar navbar-expand-lg bg-body-secondary border-bottom mb-4">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="<?php echo sedot::e($post->_url()); ?>"><?php echo sedot::e(SITE_TITLE); ?></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#siteNav" aria-controls="siteNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="siteNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="<?php echo sedot::e($post->_url()); ?>"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="<?php echo sedot::e(sedot::_url('rss')); ?>"><i class="fa-solid fa-square-rss"></i> RSS</a></li>
+        </ul>
+        <form class="d-flex" role="search" action="<?php echo sedot::e(sedot::_url('search')); ?>" method="get">
+          <input class="form-control me-2" type="search" name="q" placeholder="Search..." aria-label="Search" value="<?php echo sedot::e($_GET['q'] ?? ''); ?>">
+          <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+  <header class="site-header mb-4">
   <div class="container">
   <?php $post->widgetSection('header'); ?>
   </div>
@@ -102,10 +202,10 @@ $post->addWidget('head',$generator);
     <div class="col-md-6">
 		<div class="row">
 		<?php
-		if($_FRONT_PAGE){
+		if ($_FRONT_PAGE) {
 			$post->widgetSection('index-top');
 			$post->widgetSection('index-bottom');
-		}else{
+		} else {
 			$post->widgetSection('post-top');
 			$post->widgetSection('post-bottom');
 		}
@@ -122,19 +222,16 @@ $post->addWidget('head',$generator);
 		<?php $post->widgetSection('sidebar2'); ?>
 		</div>
 	</div>
-   </div>  
+   </div>
   </div>
-  <footer>
+  <footer class="border-top mt-4 py-4">
   <div class="container">
 	  <div class="row">
 		<?php $post->widgetSection('footer'); ?>
 	  </div>
-	  Powered by <a href="http://sedot.space">SEDOTPRESS</a>
+	  <small class="text-muted">Powered by <a href="https://github.com/sukualam/sedotpress">SEDOTPRESS</a></small>
   </div>
   </footer>
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
